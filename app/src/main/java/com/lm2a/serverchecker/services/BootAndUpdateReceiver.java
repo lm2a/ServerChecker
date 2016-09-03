@@ -12,8 +12,8 @@ public class BootAndUpdateReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED") ||
-                intent.getAction().equals("android.intent.action.LM2A")) {
+        if (intent.getAction().equals("android.intent.action.BOOT_COMPLETED") || //after boot
+                intent.getAction().equals("android.intent.action.LM2A")) {//when my app is updated
             Intent startServiceIntent = new Intent(context, BackgroundService.class);
             context.startService(startServiceIntent);
         }

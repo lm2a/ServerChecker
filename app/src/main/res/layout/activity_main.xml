@@ -19,7 +19,7 @@
         android:id="@+id/relativeLayout">
 
         <NumberPicker
-            android:background="@color/yellow"
+            android:background="@color/PeachPuff"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/numberPickerTime"
@@ -74,10 +74,11 @@
             android:layout_height="wrap_content"
             android:text="Notification"
             android:id="@+id/checkBoxNotification"
+            android:clickable="false"
             android:layout_alignParentTop="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
-            android:checked="false" />
+            android:checked="true" />
 
         <CheckBox
             android:layout_width="wrap_content"
@@ -86,6 +87,7 @@
             android:id="@+id/checkBoxEmail"
             android:layout_below="@+id/checkBoxNotification"
             android:layout_alignParentLeft="true"
+            android:visibility="invisible"
             android:layout_alignParentStart="true"
             android:checked="false" />
 
@@ -105,18 +107,56 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Site"
-        android:id="@+id/add"
+        android:text="Start"
+        android:id="@+id/start"
         android:layout_below="@+id/relativeLayout2"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true" />
 
-    <ListView
+    <FrameLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="@color/silver"
-        android:id="@+id/sites"
-        android:layout_below="@+id/add"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true" />
+        android:layout_below="@+id/url">
+        <ListView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@color/silver"
+            android:id="@+id/sites"
+            android:visibility="invisible"
+            android:layout_below="@+id/start"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="vertical">
+            <TextView
+                android:id="@+id/address1"
+                android:gravity="left"
+                android:layout_height="fill_parent"
+                android:layout_width="wrap_content"
+                android:maxLines="4"
+                android:lines="4"
+                android:text="If you want to enhance ServerCheck to check more than one site (adding more URL) and adding other ways to receive or send servers states notifications, please push the button and make an in-app payment of 0.99 u$s to help us to support ServerChecker. Many thanks ;-)"></TextView>
+            <Button
+                android:layout_marginTop="10dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Enhance ServerChecker"
+                android:id="@+id/button2"
+                android:layout_gravity="center_horizontal|bottom" />
+        </LinearLayout>
+
+
+    </FrameLayout>
+
+
+    <EditText
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/url"
+        android:layout_alignTop="@+id/start"
+        android:layout_alignEnd="@+id/relativeLayout2"
+        android:layout_toEndOf="@+id/start" />
 </RelativeLayout>
