@@ -15,10 +15,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
 import android.widget.Toast;
-
+import com.google.android.gms.ads.AdRequest;
+import com.google.android.gms.ads.AdView;
 import com.lm2a.serverchecker.billing.util.IabBroadcastReceiver;
 import com.lm2a.serverchecker.billing.util.IabHelper;
 import com.lm2a.serverchecker.billing.util.IabResult;
@@ -38,7 +40,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
     // Does the user have the premium upgrade?
     boolean mIsPremium = false;
     // SKUs for our products: the premium upgrade (non-consumable)
-    static final String SKU_PREMIUM = "premium";
+    static final String SKU_PREMIUM = "serverchecker.sku.premium";
     // (arbitrary) request code for the purchase flow
     static final int RC_REQUEST = 10001;
     // The helper object
@@ -59,8 +61,13 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         setContentView(R.layout.activity_main);
         //-----------------------------------------
         Eula.show(this);
+        //------admob----------------------------
+        AdView mAdView = (AdView) findViewById(R.id.adView);
+        AdRequest adRequest = new AdRequest.Builder().build();
+        mAdView.loadAd(adRequest);
+        //-----------------------------------------
         //------billing----------------------------
-        String base64EncodedPublicKey = "CONSTRUCT_YOUR_KEY_AND_PLACE_IT_HERE";
+        String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAk9JyxmgtZSgXlEyXFV6HiYj1cI0KoXh+OLbeqQxn/DVFcn4ZLglFF6LqFO1H4lb2DMTfVYuiS5gK6LpOaFKC71SDdbsx0eFf76xmQQAEPjsDVa0kGjC2OHl11MOuyiy9AkWLi90lFPIbJxns/ir9amC6gsOpqndpCRnqgYBIAlXf480pmg/StHTHQeehTDeTVnXk8R44ibQt0d8rIApaqXPbHY4je6v8Jxsnm9EiUiP7RmysA00WBCzASGZll+R4NHPPS4i8DN3NOcWytvzPpfTbHiNoeJnctmQnyapJzp0zDDOHJ6xxrddfg6ZJbqERSYvEUBHKq3s717w5Izt22QIDAQAB";
         // Create the helper, passing it our context and the public key to verify signatures with
         Log.d(TAG, "Creating IAB helper.");
         mHelper = new IabHelper(this, base64EncodedPublicKey);
@@ -196,7 +203,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
     }
 
     // User clicked the "Upgrade to Premium" button.
-    public void onUpgradeAppButtonClicked(View arg0) {
+    public void onUpgradeAppButtonClicked() {
         Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
         setWaitScreen(true);
 
@@ -255,6 +262,14 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         mNumberPicker.setMaxValue(30);
         mNumberPicker.setWrapSelectorWheel(false);
 
+
+        LinearLayout linearButton = (LinearLayout)findViewById(R.id.linearButton);
+        linearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onUpgradeAppButtonClicked();
+            }
+        });
         //final EditText editTextEmail = (EditText) findViewById(R.id.editTextEmail);
         final EditText site = (EditText) findViewById(R.id.url);
 

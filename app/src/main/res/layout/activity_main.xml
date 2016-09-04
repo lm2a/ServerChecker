@@ -31,9 +31,9 @@
         android:id="@+id/relativeLayout"
         android:layout_width="match_parent"
         android:layout_height="150dp"
-        android:background="@color/white"
         android:layout_above="@+id/url"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:background="@color/white">
 
         <NumberPicker
             android:id="@+id/numberPickerTime"
@@ -82,8 +82,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
-            android:layout_marginTop="10dp"
             android:layout_alignStart="@+id/radioButtonTimeUnit"
+            android:layout_marginTop="10dp"
             android:background="@color/LightPink"
             android:orientation="horizontal">
 
@@ -103,56 +103,39 @@
         android:id="@+id/start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_horizontal"
-        android:text="Start check!"
         android:layout_below="@+id/url"
-        android:layout_centerHorizontal="true" />
+        android:layout_centerHorizontal="true"
+        android:layout_gravity="center_horizontal"
+        android:text="Start check!" />
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_marginTop="10dp"
         android:layout_height="wrap_content"
-        android:gravity="center|bottom"
+        android:layout_marginTop="10dp"
         android:background="@color/silver"
+        android:gravity="center|bottom"
         android:orientation="vertical">
 
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/linearButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
-        android:gravity="center_vertical"
-        android:background="@color/gray"
-        android:orientation="horizontal"
         android:layout_alignParentBottom="true"
         android:layout_alignParentStart="true"
-        android:id="@+id/linearLayout">
+        android:clickable="true"
+        android:layout_weight="1"
+        android:background="@color/gray"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:gravity="center_vertical"
             android:orientation="vertical">
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:drawableLeft="@drawable/bullet"
-                android:drawablePadding="8dp"
-                android:gravity="left"
-                android:paddingLeft="5dp"
-                android:textColor="@color/white"
-                android:text="@string/bullet_list1" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:gravity="left"
-                android:paddingLeft="5dp"
-                android:drawableLeft="@drawable/bullet"
-                android:drawablePadding="8dp"
-                android:textColor="@color/white"
-            android:text="@string/bullet_list2"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -161,8 +144,8 @@
                 android:drawablePadding="8dp"
                 android:gravity="left"
                 android:paddingLeft="5dp"
-                android:textColor="@color/white"
-                android:text="@string/bullet_list3" />
+                android:text="@string/bullet_list1"
+                android:textColor="@color/white" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -171,8 +154,8 @@
                 android:drawablePadding="8dp"
                 android:gravity="left"
                 android:paddingLeft="5dp"
-                android:textColor="@color/white"
-                android:text="@string/bullet_list4" />
+                android:text="@string/bullet_list2"
+                android:textColor="@color/white" />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -180,13 +163,34 @@
                 android:drawableLeft="@drawable/bullet"
                 android:drawablePadding="8dp"
                 android:gravity="left"
-                android:textColor="@color/white"
-                android:textStyle="bold"
                 android:paddingLeft="5dp"
-                android:text="@string/bullet_list5" />
+                android:text="@string/bullet_list3"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/bullet"
+                android:drawablePadding="8dp"
+                android:gravity="left"
+                android:paddingLeft="5dp"
+                android:text="@string/bullet_list4"
+                android:textColor="@color/white" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:drawableLeft="@drawable/bullet"
+                android:drawablePadding="8dp"
+                android:gravity="left"
+                android:paddingLeft="5dp"
+                android:text="@string/bullet_list5"
+                android:textColor="@color/white"
+                android:textStyle="bold" />
 
 
         </LinearLayout>
+
         <ImageView
             android:id="@+id/imageView"
             android:layout_width="wrap_content"
@@ -199,22 +203,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_centerVertical="true" />
+
     <LinearLayout
         android:layout_width="wrap_content"
-android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/relativeLayout"
-        android:gravity="center"
-        android:background="@color/silver"
-        android:orientation="vertical"
         android:layout_alignBottom="@+id/url"
-        android:layout_alignParentEnd="true">
-    <ImageView
-        android:layout_width="20dp"
-        android:layout_height="20dp"
-        android:id="@+id/imageView2"
-        android:src="@mipmap/green"
-         />
-</LinearLayout>
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/relativeLayout"
+        android:layout_marginBottom="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@color/silver"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/lastCheck"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@mipmap/green" />
+    </LinearLayout>
 </RelativeLayout>
