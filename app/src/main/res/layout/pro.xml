@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+	android:id="@+id/relative" android:orientation="vertical" 
+	android:layout_height="fill_parent"
+	android:layout_width="fill_parent"
+	>
+
+	<TextView android:id="@+id/uno" android:layout_width="fill_parent"
+		android:layout_height="wrap_content" android:gravity="center_horizontal"
+		android:padding="3.0dip" android:text="@string/proLine1"
+		android:textColor="@color/green" android:textSize="20.0sp"
+		android:textStyle="bold"
+		android:layout_weight="1" />
+		
+	<ListView
+	android:id="@+id/listView"
+	android:paddingLeft="5dp"
+	android:gravity="center_horizontal"
+	android:layout_width="wrap_content"
+	android:layout_height="wrap_content"
+	android:listSelector="@android:color/transparent"
+	android:divider="@null"
+	android:layout_weight="1" />
+
+<FrameLayout
+	android:id="@+id/frame"
+ 	android:layout_width="fill_parent"
+ 	android:layout_height="wrap_content"
+ >
+	
+    <ImageView
+        android:id="@+id/icon"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+		android:scaleType="centerInside"
+        android:src="@mipmap/orangusad"
+        />
+        
+ 	<TextView android:id="@+id/counter" android:layout_width="fill_parent"
+		android:layout_height="wrap_content" 
+		android:padding="3.0dip" 
+		android:textColor="@color/white" android:textSize="40.0sp"
+		android:textStyle="bold"
+		android:gravity="center"
+		 />
+</FrameLayout>
+       
+	<Button android:id="@+id/pro_btn" 
+		android:layout_width="fill_parent" 
+		android:gravity="center"
+		android:layout_margin="25dp"
+		android:padding="5dp"
+		android:layout_height="wrap_content"
+		android:background="@color/green"
+		android:text="@string/proButton"
+		android:textStyle="bold"  
+		android:textColor="@color/white"
+		android:layout_weight="1" />
+
+
+
+</LinearLayout>

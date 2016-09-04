@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "80944419604",
+    "firebase_url": "https://serverchecker-73938.firebaseio.com",
+    "project_id": "serverchecker-73938",
+    "storage_bucket": "serverchecker-73938.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:80944419604:android:447cd39506dd220f",
+        "android_client_info": {
+          "package_name": "com.lm2a.serverchecker"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "80944419604-sgbki9jbr4vsu5pr0dad1lpohrt3dpas.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBUE75rguXQEeOItzvsBGweHkb9chdkQ0o"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

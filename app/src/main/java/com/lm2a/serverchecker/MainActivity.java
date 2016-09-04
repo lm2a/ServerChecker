@@ -1,12 +1,12 @@
 package com.lm2a.serverchecker;
 
-import android.app.AlarmManager;
-import android.app.PendingIntent;
+import android.app.AlertDialog;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -19,41 +19,243 @@ import android.widget.NumberPicker;
 import android.widget.RadioGroup;
 import android.widget.Toast;
 
+import com.lm2a.serverchecker.billing.util.IabBroadcastReceiver;
+import com.lm2a.serverchecker.billing.util.IabHelper;
+import com.lm2a.serverchecker.billing.util.IabResult;
+import com.lm2a.serverchecker.billing.util.Inventory;
+import com.lm2a.serverchecker.billing.util.Purchase;
 import com.lm2a.serverchecker.model.Config;
 import com.lm2a.serverchecker.services.BackgroundService;
 import com.lm2a.serverchecker.services.Constants;
 
-public class MainActivity extends AppCompatActivity {
-
+public class MainActivity extends AppCompatActivity implements IabBroadcastReceiver.IabBroadcastListener,
+        View.OnClickListener {
+    private static final String TAG = "MainActivity";
     private RadioGroup mRadioGroup;
     private NumberPicker mNumberPicker;
     private Button mStart;
 
+    // Does the user have the premium upgrade?
+    boolean mIsPremium = false;
+    // SKUs for our products: the premium upgrade (non-consumable)
+    static final String SKU_PREMIUM = "premium";
+    // (arbitrary) request code for the purchase flow
+    static final int RC_REQUEST = 10001;
+    // The helper object
+    IabHelper mHelper;
+    // Provides purchase notification while this app is running
+    IabBroadcastReceiver mBroadcastReceiver;
 
-    private long timeInMiliseconds;
+
+
     private int timeUnit = -1;
     private int timeChoosed=-1;
     private boolean notification, email;
-    private PendingIntent pendingIntent;
-    private AlarmManager manager;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        //-----------------------------------------
+        Eula.show(this);
+        //------billing----------------------------
+        String base64EncodedPublicKey = "CONSTRUCT_YOUR_KEY_AND_PLACE_IT_HERE";
+        // Create the helper, passing it our context and the public key to verify signatures with
+        Log.d(TAG, "Creating IAB helper.");
+        mHelper = new IabHelper(this, base64EncodedPublicKey);
+        // enable debug logging (for a production application, you should set this to false).
+        mHelper.enableDebugLogging(true);
+        // Start setup. This is asynchronous and the specified listener
+        // will be called once setup completes.
+        Log.d(TAG, "Starting setup.");
+        mHelper.startSetup(new IabHelper.OnIabSetupFinishedListener() {
+            public void onIabSetupFinished(IabResult result) {
+                Log.d(TAG, "Setup finished.");
+
+                if (!result.isSuccess()) {
+                    // Oh noes, there was a problem.
+                    complain("Problem setting up in-app billing: " + result);
+                    return;
+                }
+
+                // Have we been disposed of in the meantime? If so, quit.
+                if (mHelper == null) return;
+
+                // Important: Dynamically register for broadcast messages about updated purchases.
+                // We register the receiver here instead of as a <receiver> in the Manifest
+                // because we always call getPurchases() at startup, so therefore we can ignore
+                // any broadcasts sent while the app isn't running.
+                // Note: registering this listener in an Activity is a bad idea, but is done here
+                // because this is a SAMPLE. Regardless, the receiver must be registered after
+                // IabHelper is setup, but before first call to getPurchases().
+                mBroadcastReceiver = new IabBroadcastReceiver(MainActivity.this);
+                IntentFilter broadcastFilter = new IntentFilter(IabBroadcastReceiver.ACTION);
+                registerReceiver(mBroadcastReceiver, broadcastFilter);
+
+                // IAB is fully set up. Now, let's get an inventory of stuff we own.
+                Log.d(TAG, "Setup successful. Querying inventory.");
+                try {
+                    mHelper.queryInventoryAsync(mGotInventoryListener);
+                } catch (IabHelper.IabAsyncInProgressException e) {
+                    complain("Error querying inventory. Another async operation in progress.");
+                }
+            }
+        });
+        //----------------------------------------------------------------------------------------
         Config c = getParametersFromPreferences();
         setUI(c);
     }
+
+    // Listener that's called when we finish querying the items and subscriptions we own
+    IabHelper.QueryInventoryFinishedListener mGotInventoryListener = new IabHelper.QueryInventoryFinishedListener() {
+        public void onQueryInventoryFinished(IabResult result, Inventory inventory) {
+            Log.d(TAG, "Query inventory finished.");
+
+            // Have we been disposed of in the meantime? If so, quit.
+            if (mHelper == null) return;
+
+            // Is it a failure?
+            if (result.isFailure()) {
+                complain("Failed to query inventory: " + result);
+                return;
+            }
+
+            Log.d(TAG, "Query inventory was successful.");
+
+            /*
+             * Check for items we own. Notice that for each purchase, we check
+             * the developer payload to see if it's correct! See
+             * verifyDeveloperPayload().
+             */
+
+            // Do we have the premium upgrade?
+            Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
+            mIsPremium = (premiumPurchase != null && verifyDeveloperPayload(premiumPurchase));
+            Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
+
+
+            updateUi();
+            setWaitScreen(false);
+            Log.d(TAG, "Initial inventory query finished; enabling main UI.");
+        }
+    };
+
+    /** Verifies the developer payload of a purchase. */
+    boolean verifyDeveloperPayload(Purchase p) {
+        String payload = p.getDeveloperPayload();
+
+        /*
+         * TODO: verify that the developer payload of the purchase is correct. It will be
+         * the same one that you sent when initiating the purchase.
+         *
+         * WARNING: Locally generating a random string when starting a purchase and
+         * verifying it here might seem like a good approach, but this will fail in the
+         * case where the user purchases an item on one device and then uses your app on
+         * a different device, because on the other device you will not have access to the
+         * random string you originally generated.
+         *
+         * So a good developer payload has these characteristics:
+         *
+         * 1. If two different users purchase an item, the payload is different between them,
+         *    so that one user's purchase can't be replayed to another user.
+         *
+         * 2. The payload must be such that you can verify it even when the app wasn't the
+         *    one who initiated the purchase flow (so that items purchased by the user on
+         *    one device work on other devices owned by the user).
+         *
+         * Using your own server to store and verify developer payloads across app
+         * installations is recommended.
+         */
+
+        return true;
+    }
+
+    // updates UI to reflect model
+    public void updateUi() {
+        // update the car color to reflect premium status or lack thereof
+       //TODO ((ImageView)findViewById(R.id.free_or_premium)).setImageResource(mIsPremium ? R.drawable.premium : R.drawable.free);
+
+        // "Upgrade" button is only visible if the user is not premium
+        //TODO  findViewById(R.id.upgrade_button).setVisibility(mIsPremium ? View.GONE : View.VISIBLE);
+
+      }
+
+    // Enables or disables the "please wait" screen.
+    void setWaitScreen(boolean set) {
+        //TODO findViewById(R.id.screen_main).setVisibility(set ? View.GONE : View.VISIBLE);
+        //TODO findViewById(R.id.screen_wait).setVisibility(set ? View.VISIBLE : View.GONE);
+    }
+
+    void alert(String message) {
+        AlertDialog.Builder bld = new AlertDialog.Builder(this);
+        bld.setMessage(message);
+        bld.setNeutralButton("OK", null);
+        Log.d(TAG, "Showing alert dialog: " + message);
+        bld.create().show();
+    }
+
+    // User clicked the "Upgrade to Premium" button.
+    public void onUpgradeAppButtonClicked(View arg0) {
+        Log.d(TAG, "Upgrade button clicked; launching purchase flow for upgrade.");
+        setWaitScreen(true);
+
+        /* TODO: for security, generate your payload here for verification. See the comments on
+         *        verifyDeveloperPayload() for more info. Since this is a SAMPLE, we just use
+         *        an empty string, but on a production app you should carefully generate this. */
+        String payload = "";
+
+        try {
+            mHelper.launchPurchaseFlow(this, SKU_PREMIUM, RC_REQUEST,
+                    mPurchaseFinishedListener, payload);
+        } catch (IabHelper.IabAsyncInProgressException e) {
+            complain("Error launching purchase flow. Another async operation in progress.");
+            setWaitScreen(false);
+        }
+    }
+
+    // Callback for when a purchase is finished
+    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+            Log.d(TAG, "Purchase finished: " + result + ", purchase: " + purchase);
+
+            // if we were disposed of in the meantime, quit.
+            if (mHelper == null) return;
+
+            if (result.isFailure()) {
+                complain("Error purchasing: " + result);
+                setWaitScreen(false);
+                return;
+            }
+            if (!verifyDeveloperPayload(purchase)) {
+                complain("Error purchasing. Authenticity verification failed.");
+                setWaitScreen(false);
+                return;
+            }
+
+            Log.d(TAG, "Purchase successful.");
+
+            if (purchase.getSku().equals(SKU_PREMIUM)) {
+                // bought the premium upgrade!
+                Log.d(TAG, "Purchase is premium upgrade. Congratulating user.");
+                alert("Thank you for upgrading to premium!");
+                mIsPremium = true;
+                updateUi();
+                setWaitScreen(false);
+            }
+        }
+    };
+
 
 
     private void setUI(final Config config) {
         mRadioGroup = (RadioGroup) findViewById(R.id.radioButtonTimeUnit);
         mNumberPicker = (NumberPicker) findViewById(R.id.numberPickerTime);
         mNumberPicker.setMinValue(0);
-        mNumberPicker.setMaxValue(10);
+        mNumberPicker.setMaxValue(30);
         mNumberPicker.setWrapSelectorWheel(false);
 
-        final EditText editTextEmail = (EditText) findViewById(R.id.editTextEmail);
+        //final EditText editTextEmail = (EditText) findViewById(R.id.editTextEmail);
         final EditText site = (EditText) findViewById(R.id.url);
 
         mStart = (Button) findViewById(R.id.start);
@@ -71,7 +273,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
 
-                String e = editTextEmail.getText().toString();
+                //String e = editTextEmail.getText().toString();
                 String u = site.getText().toString();
 
                 if(timeChoosed<0){
@@ -79,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
                     timeUnit=config.timeUnit;
                 }
                 Log.i("TAG", "" + timeChoosed + " - " + timeUnit + " - " + notification + " - " + email);
-                setParametersOnPreferences(timeChoosed, timeUnit, u, e);
+                setParametersOnPreferences(timeChoosed, timeUnit, u, null);
                 //process();
 
                 Intent startServiceIntent = new Intent(MainActivity.this, BackgroundService.class);
@@ -95,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         CheckBox chkNotification = (CheckBox) findViewById(R.id.checkBoxNotification);
-        CheckBox chkEmail = (CheckBox) findViewById(R.id.checkBoxEmail);
+        //CheckBox chkEmail = (CheckBox) findViewById(R.id.checkBoxEmail);
 
         chkNotification.setOnClickListener(new View.OnClickListener() {
 
@@ -111,19 +313,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        chkEmail.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                //is chkIos checked?
-                if (((CheckBox) v).isChecked()) {
-                    email = true;
-                } else {
-                    email = false;
-                }
-
-            }
-        });
+//        chkEmail.setOnClickListener(new View.OnClickListener() {
+//
+//            @Override
+//            public void onClick(View v) {
+//                //is chkIos checked?
+//                if (((CheckBox) v).isChecked()) {
+//                    email = true;
+//                } else {
+//                    email = false;
+//                }
+//
+//            }
+//        });
 
 
         mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -133,14 +335,10 @@ public class MainActivity extends AppCompatActivity {
                 // find which radio button is selected
                 if (checkedId == R.id.radioButtonHour) {
                     timeUnit = Constants.HOURS;
-                    timeInMiliseconds = timeChoosed * Constants.T_HOURS;
-
                 } else if (checkedId == R.id.radioButtonMinute) {
                     timeUnit = Constants.MINUTES;
-                    timeInMiliseconds = timeChoosed * Constants.T_MINUTES;
                 } else {
                     timeUnit = Constants.SECONDS;
-                    timeInMiliseconds = timeChoosed * Constants.T_SECONDS;
                 }
             }
 
@@ -157,7 +355,7 @@ public class MainActivity extends AppCompatActivity {
             }else{//HOURS by default
                 mRadioGroup.check(R.id.radioButtonHour);
             }
-            editTextEmail.setText(config.email);
+            //editTextEmail.setText(config.email);
             site.setText(config.url);
         }
 
@@ -211,4 +409,59 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    // We're being destroyed. It's important to dispose of the helper here!
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+
+        // very important:
+        if (mBroadcastReceiver != null) {
+            unregisterReceiver(mBroadcastReceiver);
+        }
+
+        // very important:
+        Log.d(TAG, "Destroying helper.");
+        if (mHelper != null) {
+            mHelper.disposeWhenFinished();
+            mHelper = null;
+        }
+    }
+
+
+    @Override
+    public void receivedBroadcast() {
+        // Received a broadcast notification that the inventory of items has changed
+        Log.d(TAG, "Received broadcast notification. Querying inventory.");
+        try {
+            mHelper.queryInventoryAsync(mGotInventoryListener);
+        } catch (IabHelper.IabAsyncInProgressException e) {
+            complain("Error querying inventory. Another async operation in progress.");
+        }
+    }
+
+    @Override
+    public void onClick(View view) {
+
+    }
+    void complain(String message) {
+        Log.e(TAG, "**** ServerChecker Error: " + message);
+        alert("Error: " + message);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        Log.d(TAG, "onActivityResult(" + requestCode + "," + resultCode + "," + data);
+        if (mHelper == null) return;
+
+        // Pass on the activity result to the helper for handling
+        if (!mHelper.handleActivityResult(requestCode, resultCode, data)) {
+            // not handled, so handle it ourselves (here's where you'd
+            // perform any handling of activity results not related to in-app
+            // billing...
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+        else {
+            Log.d(TAG, "onActivityResult handled by IABUtil.");
+        }
+    }
 }

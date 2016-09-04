@@ -1,3 +1,26 @@
 <resources>
     <string name="app_name">ServerChecker</string>
+    <string name="ok">OK</string>
+    <string name="pro_title">ServerChecker Pro Version</string>
+    <string name="proLine1">Become Pro!</string>
+    <string name="proLine2">Contribute to develop better applications.</string>
+    <string name="proLine3">Increase your screen turning off the ads.</string>
+    <string name="proLine4">Connect with a fastest proxy.</string>
+    <string name="proLine5">Make happy this lovely orangutan baby.</string>
+    <string name="eula">This software is provided \'as-is\', without any express or implied warranty. In no event will the authors be held liable for any damages
+    arising from the use of this software or it\'s web online services.
+    In consideration for access to and use of this software, you agree that adverts may be placed on this software.
+    The online services offered as a complimentary free service with no service level or data guarantees of any kind. In no event will the authors be held liable for any damages
+    arising the use of the online service.</string>
+    <string name="eula_title">Server Checker EULA</string>
+    <string name="eula_accept">Accept</string>
+    <string name="eula_refuse">Refuse</string>
+    <string name="proButton">Become PRO</string>
+    <string name="banner_ad_unit_id">ca-app-pub-3940256099942544/6300978111</string>
+
+    <string name="bullet_list1">Remove Ads.</string>
+    <string name="bullet_list2">Allow email notifications.</string>
+    <string name="bullet_list3">Add as many sites as you want.</string>
+    <string name="bullet_list4">Support developer</string>
+    <string name="bullet_list5">Make happy this lovely orangutan baby.</string>
 </resources>
