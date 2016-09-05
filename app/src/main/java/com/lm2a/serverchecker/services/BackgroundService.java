@@ -8,21 +8,40 @@ import android.content.res.Resources;
 import android.os.BatteryManager;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
+
+import com.lm2a.serverchecker.MainActivity;
 
 public class BackgroundService extends Service {
 
     private static final String TAG = "BackgroundService";
+    static final public String MESSAGE = "com.lm2a.serverchecker.services.MGS";
+
     PeriodicTaskReceiver mPeriodicTaskReceiver = new PeriodicTaskReceiver();
+    LocalBroadcastManager mBroadcaster;
+
+    public void sendResult() {
+        if(MainActivity.active) {//if activity is running
+            Intent intent = new Intent(MESSAGE);
+            intent.putExtra(MESSAGE, "update");
+            mBroadcaster.sendBroadcast(intent);
+        }
+    }
+
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        mBroadcaster = LocalBroadcastManager.getInstance(this);
+
         Log.e(TAG, "BackgroundService starting...");
         if((intent!=null)&&(intent.getExtras()!=null)) {
+
             int x = intent.getExtras().getInt("Messenger");
             if(x== Constants.MSG_STOP){
                 Log.e(TAG, "Stopping checks...");
                 mPeriodicTaskReceiver.stopPeriodicTaskHeartBeat(this);
+                this.stopSelf();
             }
         }else {
             Log.e(TAG, "Starting checks...");

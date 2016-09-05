@@ -1,11 +1,14 @@
 package com.lm2a.serverchecker;
 
 import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -15,6 +18,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
@@ -32,10 +36,15 @@ import com.lm2a.serverchecker.services.Constants;
 
 public class MainActivity extends AppCompatActivity implements IabBroadcastReceiver.IabBroadcastListener,
         View.OnClickListener {
+
+    public static boolean active = false;
+
+
     private static final String TAG = "MainActivity";
     private RadioGroup mRadioGroup;
     private NumberPicker mNumberPicker;
     private Button mStart;
+    private ImageView mLastCheck;
 
     // Does the user have the premium upgrade?
     boolean mIsPremium = false;
@@ -47,13 +56,28 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
     IabHelper mHelper;
     // Provides purchase notification while this app is running
     IabBroadcastReceiver mBroadcastReceiver;
-
-
+    BroadcastReceiver mUpdateBroadcastReceiver;
 
     private int timeUnit = -1;
     private int timeChoosed=-1;
     private boolean notification, email;
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        active = true;
+        //registering to receive updates from Service
+        LocalBroadcastManager.getInstance(this).registerReceiver((mUpdateBroadcastReceiver),
+                new IntentFilter(BackgroundService.MESSAGE));
+    }
+
+    @Override
+    public void onStop() {
+        active = false;
+        //un-registering to receive updates from Service
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mUpdateBroadcastReceiver);
+        super.onStop();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +90,19 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         AdRequest adRequest = new AdRequest.Builder().build();
         mAdView.loadAd(adRequest);
         //-----------------------------------------
+
+        //--------UI update------------------------
+
+        mUpdateBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String s = intent.getStringExtra(BackgroundService.MESSAGE);
+                // do something here.
+                updateUIWithLastCheck();
+            }
+        };
+        //-----------------------------------------
+
         //------billing----------------------------
         String base64EncodedPublicKey = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAk9JyxmgtZSgXlEyXFV6HiYj1cI0KoXh+OLbeqQxn/DVFcn4ZLglFF6LqFO1H4lb2DMTfVYuiS5gK6LpOaFKC71SDdbsx0eFf76xmQQAEPjsDVa0kGjC2OHl11MOuyiy9AkWLi90lFPIbJxns/ir9amC6gsOpqndpCRnqgYBIAlXf480pmg/StHTHQeehTDeTVnXk8R44ibQt0d8rIApaqXPbHY4je6v8Jxsnm9EiUiP7RmysA00WBCzASGZll+R4NHPPS4i8DN3NOcWytvzPpfTbHiNoeJnctmQnyapJzp0zDDOHJ6xxrddfg6ZJbqERSYvEUBHKq3s717w5Izt22QIDAQAB";
         // Create the helper, passing it our context and the public key to verify signatures with
@@ -255,6 +292,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
 
 
 
+
     private void setUI(final Config config) {
         mRadioGroup = (RadioGroup) findViewById(R.id.radioButtonTimeUnit);
         mNumberPicker = (NumberPicker) findViewById(R.id.numberPickerTime);
@@ -263,6 +301,8 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         mNumberPicker.setWrapSelectorWheel(false);
 
 
+        mLastCheck = (ImageView) findViewById(R.id.lastCheck);
+        updateUIWithLastCheck();
         LinearLayout linearButton = (LinearLayout)findViewById(R.id.linearButton);
         linearButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -377,6 +417,9 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
     }
 
 
+    public void updateUI(boolean lastCheck){
+
+    }
 
 
     private void setParametersOnPreferences(int interval, int timeUnit, String url, String email){
@@ -395,10 +438,23 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         int t = sharedPrefs.getInt(Constants.TIME_UNIT, 0);//hour default
         String u = sharedPrefs.getString(Constants.SITE_URL, null);
         String e = sharedPrefs.getString(Constants.EMAIL, null);
+        boolean l = sharedPrefs.getBoolean(Constants.LAST_CHECK, true);
+
         if(u!=null){
             return new Config(i, t, u, e);
         }else{
             return null;
+        }
+    }
+
+    private void updateUIWithLastCheck(){
+        SharedPreferences sharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(this);
+        boolean l = sharedPrefs.getBoolean(Constants.LAST_CHECK, true);
+        if(l) {
+            mLastCheck.setImageResource(R.mipmap.green);
+        }else{
+            mLastCheck.setImageResource(R.mipmap.green);
         }
     }
 
@@ -478,5 +534,11 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         else {
             Log.d(TAG, "onActivityResult handled by IABUtil.");
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        updateUIWithLastCheck();
     }
 }

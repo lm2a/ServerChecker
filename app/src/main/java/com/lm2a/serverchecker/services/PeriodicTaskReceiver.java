@@ -20,6 +20,7 @@ import com.lm2a.serverchecker.R;
 import com.lm2a.serverchecker.model.Config;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -86,7 +87,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     //---All the business logic---------------------------------------------------------------------------
 
     private static final int TIME_OUT = 60000;
-    private static final int DEFAULT_PORT = 80;
+    private static final int DEFAULT_PORT = 8080;
 
 
     private void check() {
@@ -97,15 +98,31 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
                 if (isAlive) {
                     Log.i("TAG", "lm2a Alive");
                 } else {
-                    Log.i("TAG", "lm2a Dead");
-                    showNotification("lm2a Dead");
+                    showNotification(mConfig.url + " is Dead");
                 }
 
+                setLastCheckResult(isAlive);//save last check in preferences
+
+                if(getLastCheckResult()!=isAlive){//if current result is different from the last we should update Service to update Activity's UI
+                    ((BackgroundService)mContext).sendResult();
+                }
             }
         });
         thread.start();
 
 
+    }
+
+    private void setLastCheckResult(boolean lastCheck) {
+        SharedPreferences sharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(mContext);
+        sharedPrefs.edit().putBoolean(Constants.LAST_CHECK, lastCheck).apply();
+    }
+
+    private boolean getLastCheckResult() {
+        SharedPreferences sharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(mContext);
+        return sharedPrefs.getBoolean(Constants.LAST_CHECK, true);
     }
 
     private Config getParametersFromPreferences(Context context) {
@@ -128,7 +145,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         // openPort =  22 - ssh, 80 or 443 - webserver, 25 - mailserver etc.
         try {
             try (Socket soc = new Socket()) {
-                soc.connect(new InetSocketAddress(addr, openPort), timeOutMillis);
+                //InetAddress addr = new InetSocketAddress(addr, openPort)
+                        soc.connect(new InetSocketAddress(addr, openPort), timeOutMillis);
             }
             return true;
         } catch (IOException ex) {
@@ -170,8 +188,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
 
     public long calculateInterval(Context context) {
-        if(mConfig==null){
-            mConfig=getParametersFromPreferences(context);
+        if (mConfig == null) {
+            mConfig = getParametersFromPreferences(context);
         }
 
         long timeInMiliseconds;
