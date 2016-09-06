@@ -311,7 +311,8 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
             }
         });
         //final EditText editTextEmail = (EditText) findViewById(R.id.editTextEmail);
-        final EditText site = (EditText) findViewById(R.id.url);
+        final EditText site = (EditText) findViewById(R.id.site);
+        final EditText port = (EditText) findViewById(R.id.port);
 
         mStart = (Button) findViewById(R.id.start);
 
@@ -330,13 +331,14 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
 
                 //String e = editTextEmail.getText().toString();
                 String u = site.getText().toString();
+                int p = new Integer(port.getText().toString());
 
                 if(timeChoosed<0){
                     timeChoosed=config.interval;
                     timeUnit=config.timeUnit;
                 }
                 Log.i("TAG", "" + timeChoosed + " - " + timeUnit + " - " + notification + " - " + email);
-                setParametersOnPreferences(timeChoosed, timeUnit, u, null);
+                setParametersOnPreferences(timeChoosed, timeUnit, u, p, null);
                 //process();
 
                 Intent startServiceIntent = new Intent(MainActivity.this, BackgroundService.class);
@@ -412,6 +414,10 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
             }
             //editTextEmail.setText(config.email);
             site.setText(config.url);
+            StringBuffer sb = new StringBuffer();
+            sb.append(config.port);
+            String x = sb.toString();
+            port.setText(new String(x));
         }
 
     }
@@ -422,12 +428,13 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
     }
 
 
-    private void setParametersOnPreferences(int interval, int timeUnit, String url, String email){
+    private void setParametersOnPreferences(int interval, int timeUnit, String url, int p, String email){
         SharedPreferences sharedPrefs = PreferenceManager
                 .getDefaultSharedPreferences(this);
         sharedPrefs.edit().putInt(Constants.INTERVAL, interval).apply();
         sharedPrefs.edit().putInt(Constants.TIME_UNIT, timeUnit).apply();
         sharedPrefs.edit().putString(Constants.SITE_URL, url).apply();
+        sharedPrefs.edit().putInt(Constants.SITE_PORT, p).apply();
         sharedPrefs.edit().putString(Constants.EMAIL, email).apply();
     }
 
@@ -437,11 +444,12 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         int i = sharedPrefs.getInt(Constants.INTERVAL, 1000);//1 seg default
         int t = sharedPrefs.getInt(Constants.TIME_UNIT, 0);//hour default
         String u = sharedPrefs.getString(Constants.SITE_URL, null);
+        int p = sharedPrefs.getInt(Constants.SITE_PORT, 80);//default port
         String e = sharedPrefs.getString(Constants.EMAIL, null);
         boolean l = sharedPrefs.getBoolean(Constants.LAST_CHECK, true);
 
         if(u!=null){
-            return new Config(i, t, u, e);
+            return new Config(i, t, u, p, e);
         }else{
             return null;
         }

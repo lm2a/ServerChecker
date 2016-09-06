@@ -103,10 +103,10 @@
         android:id="@+id/start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/url"
-        android:layout_centerHorizontal="true"
         android:layout_gravity="center_horizontal"
-        android:text="Start check!" />
+        android:text="Start check!"
+        android:layout_below="@+id/linearLayout"
+        android:layout_alignEnd="@+id/linearLayout" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -131,6 +131,7 @@
         android:orientation="horizontal">
 
         <LinearLayout
+            android:id="@+id/pro"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -205,19 +206,41 @@
         android:layout_centerVertical="true" />
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/url"
         android:layout_alignParentEnd="true"
         android:layout_below="@+id/relativeLayout"
         android:layout_marginBottom="10dp"
         android:layout_marginTop="10dp"
-        android:background="@color/silver"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:background="@color/white"
+        android:gravity="center_vertical|center_horizontal"
+        android:orientation="horizontal"
+        android:id="@+id/linearLayout">
+
+        <EditText
+            android:id="@+id/site"
+            android:padding="5dp"
+            android:layout_width="match_parent"
+            android:hint="url"
+            android:layout_weight="1"
+            android:background="@color/silver"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true" />
+
+        <EditText
+            android:id="@+id/port"
+            android:padding="5dp"
+            android:hint="port"
+            android:layout_marginLeft="5dp"
+            android:layout_weight="4"
+            android:background="@color/silver"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true" />
 
         <ImageView
             android:id="@+id/lastCheck"
+            android:layout_marginLeft="5dp"
             android:layout_width="20dp"
             android:layout_height="20dp"
             android:src="@mipmap/green" />

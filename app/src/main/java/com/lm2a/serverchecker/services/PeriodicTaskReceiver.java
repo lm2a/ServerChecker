@@ -87,23 +87,23 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     //---All the business logic---------------------------------------------------------------------------
 
     private static final int TIME_OUT = 60000;
-    private static final int DEFAULT_PORT = 8080;
 
 
     private void check() {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                boolean isAlive = isReachable(mConfig.url, DEFAULT_PORT, TIME_OUT);
+                boolean isAlive = isReachable(mConfig.url, mConfig.port, TIME_OUT);
                 if (isAlive) {
                     Log.i("TAG", "lm2a Alive");
                 } else {
-                    showNotification(mConfig.url + " is Dead");
+                    showNotification(mConfig.url + ":" + mConfig.port + " is DEAD or taking more than a MINUTE to answer");
                 }
 
-                setLastCheckResult(isAlive);//save last check in preferences
 
-                if(getLastCheckResult()!=isAlive){//if current result is different from the last we should update Service to update Activity's UI
+                boolean b1 = getLastCheckResult();
+                setLastCheckResult(isAlive);//save last check in preferences
+                if(b1 != isAlive){//if current result is different from the last we should update Service to update Activity's UI
                     ((BackgroundService)mContext).sendResult();
                 }
             }
@@ -131,9 +131,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         int i = sharedPrefs.getInt(Constants.INTERVAL, 1000);//1 seg default
         int t = sharedPrefs.getInt(Constants.TIME_UNIT, 0);//hour default
         String u = sharedPrefs.getString(Constants.SITE_URL, null);
+        int p = sharedPrefs.getInt(Constants.SITE_PORT, 80);//default port
         String e = sharedPrefs.getString(Constants.EMAIL, null);
         if (u != null) {
-            return new Config(i, t, u, e);
+            return new Config(i, t, u, p, e);
         } else {
             return null;
         }
