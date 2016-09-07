@@ -1,6 +1,8 @@
 package com.lm2a.serverchecker.services;
 
 import android.app.Service;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
@@ -29,6 +31,31 @@ public class BackgroundService extends Service {
         }
     }
 
+
+    private final BroadcastReceiver receiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            if(action.equals(Constants.INTENT_ACTION_UPDATE)){
+                //action for sms received
+                sendResult();
+            }
+        }
+    };
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.INTENT_ACTION_UPDATE); //further more
+        registerReceiver(receiver, filter);
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(receiver);
+    }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {

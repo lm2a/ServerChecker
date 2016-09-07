@@ -96,11 +96,15 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         mUpdateBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                String s = intent.getStringExtra(BackgroundService.MESSAGE);
+                //String s = intent.getStringExtra(BackgroundService.MESSAGE);
                 // do something here.
                 updateUIWithLastCheck();
             }
         };
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.INTENT_ACTION__SERVICE_UPDATE); //further more
+        registerReceiver(mUpdateBroadcastReceiver, filter);
         //-----------------------------------------
 
         //------billing----------------------------
@@ -462,7 +466,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         if(l) {
             mLastCheck.setImageResource(R.mipmap.green);
         }else{
-            mLastCheck.setImageResource(R.mipmap.green);
+            mLastCheck.setImageResource(R.mipmap.red);
         }
     }
 

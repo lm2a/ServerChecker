@@ -29,6 +29,10 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private static final String TAG = "PeriodicTaskReceiver";
     private Context mContext;
     private Config mConfig;
+    private BackgroundService mBackgroundService;
+
+
+
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -104,7 +108,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
                 boolean b1 = getLastCheckResult();
                 setLastCheckResult(isAlive);//save last check in preferences
                 if(b1 != isAlive){//if current result is different from the last we should update Service to update Activity's UI
-                    ((BackgroundService)mContext).sendResult();
+                    Intent i = new Intent();
+                    i.setAction(Constants.INTENT_ACTION_UPDATE);
+                    mContext.sendBroadcast(i);
                 }
             }
         });
