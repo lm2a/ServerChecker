@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.util.Date;
 
 public class PeriodicTaskReceiver extends BroadcastReceiver {
 
@@ -101,7 +102,8 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
                 if (isAlive) {
                     Log.i("TAG", "lm2a Alive");
                 } else {
-                    showNotification(mConfig.url + ":" + mConfig.port + " is DEAD or taking more than a MINUTE to answer");
+                    Date now = new Date();
+                    showNotification(now.toString()+":"+mConfig.url + ":" + mConfig.port + " was not responding in 1'");
                 }
 
 

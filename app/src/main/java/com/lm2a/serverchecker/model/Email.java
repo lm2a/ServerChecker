@@ -7,6 +7,13 @@ public class Email {
     int id;
     String email;
 
+    public Email() {
+    }
+
+    public Email(String email) {
+        this.email = email;
+    }
+
     public Email(String email, int id) {
         this.email = email;
         this.id = id;

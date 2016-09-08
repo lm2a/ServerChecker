@@ -10,6 +10,9 @@ public class Host {
     boolean notification;
     boolean emails;
 
+    public Host() {
+    }
+
     public Host(boolean emails, String host, int id, boolean notification, String port) {
         this.emails = emails;
         this.host = host;

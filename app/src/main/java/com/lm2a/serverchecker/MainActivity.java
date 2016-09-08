@@ -329,6 +329,14 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
             }
         });
 
+        mLastCheck.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(MainActivity.this, DataBaseActivity.class);
+                startActivity(i);
+            }
+        });
+
         mStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
