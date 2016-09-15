@@ -81,11 +81,6 @@ public class DataBaseActivity extends Activity {
                         DataBaseActivity.this,
                         android.R.layout.select_dialog_singlechoice);
                 arrayAdapter.addAll(stringArray);
-//                arrayAdapter.add("Hardik");
-//                arrayAdapter.add("Archit");
-//                arrayAdapter.add("Jignesh");
-//                arrayAdapter.add("Umang");
-//                arrayAdapter.add("Gatti");
                 db.closeDB();
                 builderSingle.setNegativeButton(
                         "cancel",

@@ -14,16 +14,24 @@ import android.net.Uri;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.View;
+import android.widget.Toast;
 
 import com.lm2a.serverchecker.MainActivity;
 import com.lm2a.serverchecker.R;
+import com.lm2a.serverchecker.database.DatabaseHelper;
+import com.lm2a.serverchecker.email.GMailSender;
 import com.lm2a.serverchecker.model.Config;
+import com.lm2a.serverchecker.model.Email;
+import com.lm2a.serverchecker.model.Host;
+import com.lm2a.serverchecker.utils.Util;
 
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.util.Date;
+import java.util.List;
 
 public class PeriodicTaskReceiver extends BroadcastReceiver {
 
@@ -99,10 +107,12 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
             @Override
             public void run() {
                 boolean isAlive = isReachable(mConfig.url, mConfig.port, TIME_OUT);
+                Date now = new Date();
                 if (isAlive) {
                     Log.i("TAG", "lm2a Alive");
+                    sendErrorReport("Everything is bebay at "+now.toString(), mConfig.url + ":" + mConfig.port);
                 } else {
-                    Date now = new Date();
+
                     showNotification(now.toString()+":"+mConfig.url + ":" + mConfig.port + " was not responding in 1'");
                 }
 
@@ -211,5 +221,30 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
             timeInMiliseconds = mConfig.interval * Constants.T_SECONDS;
         }
         return timeInMiliseconds;
+    }
+
+    //TODO connect with real email address for that url
+    public void sendErrorReport(String txt, String url) {
+        DatabaseHelper db = new DatabaseHelper(mContext);
+        List<Email> emails = db.getEmailsByHost(url);
+
+        final String report = Util.getDeviceData(mContext, txt, url);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    GMailSender sender = new GMailSender("aadroidreports@gmail.com", "AAIr3l4nd");
+                    sender.sendMail("AA Android App Error Report",
+                            report,
+                            "aadroidreports@gmail.com",
+                            "lamenza@gmail.com, mariolamenza@gmail.com, mariolamenza@hotmail");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
+
+
     }
 }

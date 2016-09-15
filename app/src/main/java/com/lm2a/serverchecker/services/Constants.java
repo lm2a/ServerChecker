@@ -19,4 +19,5 @@ public class Constants {
     public static final String INTENT_ACTION = "com.lm2a.serverchecker.PERIODIC_TASK_HEART_BEAT";
     public static final String INTENT_ACTION_UPDATE = "com.lm2a.serverchecker.UPDATE_FROM_PULSE";
     public static final String INTENT_ACTION__SERVICE_UPDATE = "com.lm2a.serverchecker.UPDATE_FROM_SERVICE";
+    public static boolean MODE_PRO = true;
 }

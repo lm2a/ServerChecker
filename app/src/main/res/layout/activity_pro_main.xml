@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:ads="http://schemas.android.com/apk/res-auto"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:background="@color/white"
+    android:gravity="top"
+    android:orientation="vertical"
+    android:padding="10dp">
+
+
+    <RelativeLayout
+        android:id="@+id/relativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="150dp"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/ads"
+        android:background="@color/white">
+
+        <NumberPicker
+            android:id="@+id/numberPickerTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_centerVertical="true"
+            android:background="@color/BlueLight" />
+
+        <RadioGroup
+            android:id="@+id/radioButtonTimeUnit"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_alignParentTop="true"
+
+            android:layout_marginBottom="40dp"
+            android:layout_marginLeft="10dp"
+            android:layout_toEndOf="@+id/numberPickerTime"
+            android:layout_toRightOf="@+id/numberPickerTime"
+            android:background="@color/GreenLight">
+
+            <RadioButton
+                android:id="@+id/radioButtonHour"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="Hours" />
+
+            <RadioButton
+                android:id="@+id/radioButtonMinute"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="Minutes" />
+
+            <RadioButton
+                android:id="@+id/radioButtonSecond"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="false"
+                android:text="Seconds" />
+        </RadioGroup>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignStart="@+id/radioButtonTimeUnit"
+            android:layout_marginTop="10dp"
+            android:background="@color/LightPink"
+            android:orientation="horizontal">
+
+            <CheckBox
+                android:id="@+id/checkBoxNotification"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:checked="true"
+                android:clickable="false"
+
+                android:text="Notification" />
+
+        </LinearLayout>
+    </RelativeLayout>
+
+    <Button
+        android:id="@+id/start"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:text="Start check!"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true" />
+
+
+
+
+
+    <ScrollView
+        android:id="@+id/mainForm"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/relativeLayout">
+
+        <LinearLayout
+            android:id="@+id/linearLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentEnd="true"
+            android:layout_below="@+id/linearButton"
+            android:layout_marginBottom="10dp"
+            android:layout_marginTop="10dp"
+            android:background="@color/white"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+
+            <EditText
+                android:id="@+id/site"
+                android:layout_width="0dp"
+                android:lines="1"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:background="@color/silver"
+                android:hint="url"
+                android:layout_weight="1"
+                android:padding="5dp" />
+
+            <EditText
+                android:id="@+id/port"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginLeft="5dp"
+                android:ems="5"
+                android:layout_weight="0"
+                android:background="@color/silver"
+                android:hint="port"
+                android:padding="5dp" />
+
+            <ImageView
+                android:id="@+id/lastCheck"
+                android:layout_width="30dp"
+                android:layout_weight="0"
+                android:layout_height="30dp"
+                android:layout_marginLeft="5dp"
+                android:src="@drawable/add" />
+
+        </LinearLayout>
+    </ScrollView>
+
+    <ListView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/listView2"
+        android:layout_below="@+id/mainForm"
+        android:layout_alignParentStart="true"
+        android:layout_above="@+id/start" />
+</RelativeLayout>
