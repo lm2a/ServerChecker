@@ -106,7 +106,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                boolean isAlive = isReachable(mConfig.url, mConfig.port, TIME_OUT);
+                boolean isAlive = Util.isReachable(mConfig.url, mConfig.port, TIME_OUT);
                 Date now = new Date();
                 if (isAlive) {
                     Log.i("TAG", "lm2a Alive");
@@ -159,19 +159,6 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     }
 
 
-    private static boolean isReachable(String addr, int openPort, int timeOutMillis) {
-        // Any Open port on other machine
-        // openPort =  22 - ssh, 80 or 443 - webserver, 25 - mailserver etc.
-        try {
-            try (Socket soc = new Socket()) {
-                //InetAddress addr = new InetSocketAddress(addr, openPort)
-                        soc.connect(new InetSocketAddress(addr, openPort), timeOutMillis);
-            }
-            return true;
-        } catch (IOException ex) {
-            return false;
-        }
-    }
 
     public void showNotification(String report) {
 

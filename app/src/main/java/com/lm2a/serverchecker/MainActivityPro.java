@@ -3,25 +3,31 @@ package com.lm2a.serverchecker;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
+import android.widget.TextView;
 import android.widget.Toast;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdView;
@@ -33,6 +39,10 @@ import com.lm2a.serverchecker.billing.util.Purchase;
 import com.lm2a.serverchecker.model.Config;
 import com.lm2a.serverchecker.services.BackgroundService;
 import com.lm2a.serverchecker.services.Constants;
+import com.lm2a.serverchecker.utils.Util;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 
 public class MainActivityPro extends AppCompatActivity implements IabBroadcastReceiver.IabBroadcastListener,
         View.OnClickListener {
@@ -180,8 +190,6 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
             Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
             mIsPremium = (premiumPurchase != null && verifyDeveloperPayload(premiumPurchase));
             Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
-
-
             updateUi();
             setWaitScreen(false);
             Log.d(TAG, "Initial inventory query finished; enabling main UI.");
@@ -221,17 +229,21 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
     // updates UI to reflect model
     public void updateUi() {
         //TODO the real one if(mIsPremium){
+        Config c = getParametersFromPreferences();
+
         if(Constants.MODE_PRO){
             setContentView(R.layout.activity_pro_main);
+            setUiPro(c);
         }else{
             setContentView(R.layout.activity_main);
             //------admob----------------------------
             AdView mAdView = (AdView) findViewById(R.id.adView);
             AdRequest adRequest = new AdRequest.Builder().build();
             mAdView.loadAd(adRequest);
+            setUI(c);
         }
-        Config c = getParametersFromPreferences();
-        setUI(c);
+
+
         started = true;
         // update the car color to reflect premium status or lack thereof
        //TODO ((ImageView)findViewById(R.id.free_or_premium)).setImageResource(mIsPremium ? R.drawable.premium : R.drawable.free);
@@ -307,7 +319,23 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
     };
 
 
+    private void setUiPro(final Config config){
+        mRadioGroup = (RadioGroup) findViewById(R.id.radioButtonTimeUnit);
+        mNumberPicker = (NumberPicker) findViewById(R.id.numberPickerTime);
+        mNumberPicker.setMinValue(0);
+        mNumberPicker.setMaxValue(30);
+        mNumberPicker.setWrapSelectorWheel(false);
 
+
+        Button add = (Button) findViewById(R.id.server);
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showHostsDialog();
+            }
+        });
+
+    }
 
     private void setUI(final Config config) {
         mRadioGroup = (RadioGroup) findViewById(R.id.radioButtonTimeUnit);
@@ -316,18 +344,17 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
         mNumberPicker.setMaxValue(30);
         mNumberPicker.setWrapSelectorWheel(false);
 
-
         mLastCheck = (ImageView) findViewById(R.id.lastCheck);
         updateUIWithLastCheck();
-        if(!Constants.MODE_PRO) {
-            LinearLayout linearButton = (LinearLayout) findViewById(R.id.linearButton);
-            linearButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    onUpgradeAppButtonClicked();
-                }
-            });
-        }
+        LinearLayout linearButton = (LinearLayout) findViewById(R.id.linearButton);
+        linearButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onUpgradeAppButtonClicked();
+            }
+        });
+
+
         //final EditText editTextEmail = (EditText) findViewById(R.id.editTextEmail);
         final EditText site = (EditText) findViewById(R.id.site);
         final EditText port = (EditText) findViewById(R.id.port);
@@ -346,8 +373,8 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
         mLastCheck.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(MainActivityPro.this, DataBaseActivity.class);
-                startActivity(i);
+//                Intent i = new Intent(MainActivityPro.this, DataBaseActivity.class);
+//                startActivity(i);
             }
         });
 
@@ -576,5 +603,96 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
     protected void onResume() {
         super.onResume();
         updateUIWithLastCheck();
+    }
+
+    private void showHostsDialog(){
+        //Preparing views
+        LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        View layout = inflater.inflate(R.layout.hosts, null);
+        //layout_root should be the name of the "top-level" layout node in the dialog_layout.xml file.
+        final EditText site = (EditText) layout.findViewById(R.id.site);
+        final EditText port = (EditText) layout.findViewById(R.id.port);
+        final CheckBox notification = (CheckBox)layout.findViewById(R.id.notification);
+        final CheckBox email = (CheckBox)layout.findViewById(R.id.email);
+        final Button checkNow = (Button)layout.findViewById(R.id.checknow);
+        final EditText emailsArea = (EditText) layout.findViewById(R.id.emails_area);
+        final Button add = (Button) layout.findViewById(R.id.add_site);
+        final ImageView checkResult = (ImageView)layout.findViewById(R.id.check_result);
+        //Building dialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setView(layout);
+
+        email.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                //is chkIos checked?
+                if (((CheckBox) v).isChecked()) {
+                    emailsArea.setVisibility(View.VISIBLE);
+                } else {
+                    emailsArea.setVisibility(View.GONE);
+                }
+            }
+        });
+
+        checkNow.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                final String url = site.getText().toString();
+                String prt = port.getText().toString();
+                final int p;
+                if((url!=null)&&(!url.isEmpty())){
+                    if((prt==null)||(prt.isEmpty())){
+                        p = 80;
+                    }else{
+                        p = Integer.parseInt(prt);
+                    }
+
+                    Thread t = new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            //mCheckOk = Util.isReachable(url, p, 30000);
+                            mCheckOk = Util.isServerReachable(MainActivityPro.this, "http://"+url+":"+p);
+                            runOnUiThread(new Runnable() {
+
+                                @Override
+                                public void run() {
+                                    if( mCheckOk){
+                                        checkResult.setImageResource(R.mipmap.green);
+                                    }else{
+                                        checkResult.setImageResource(R.mipmap.red);
+                                    }
+                                }
+                            });
+
+                        }
+                    });
+                    t.start();
+
+                }
+            }
+        });
+
+        add.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
+
+
+    }
+
+
+boolean mCheckOk = false;
+
+
+    public ArrayList<String> getEmailsFromTextArea(String allTogether){
+        return (ArrayList<String>) Arrays.asList(allTogether.split(","));
     }
 }

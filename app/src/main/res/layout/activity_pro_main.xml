@@ -101,6 +101,16 @@
         android:layout_alignParentStart="true"
         android:layout_below="@+id/relativeLayout">
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Add Server"
+            android:layout_marginTop="10dp"
+            android:id="@+id/server"
+            android:background="@color/lime"
+            android:layout_below="@+id/relativeLayout"
+            android:layout_centerHorizontal="true" />
+        <!--
         <LinearLayout
             android:id="@+id/linearLayout"
             android:layout_width="match_parent"
@@ -138,7 +148,7 @@
                 android:padding="5dp" />
 
             <ImageView
-                android:id="@+id/lastCheck"
+                android:id="@+id/addServer"
                 android:layout_width="30dp"
                 android:layout_weight="0"
                 android:layout_height="30dp"
@@ -146,13 +156,16 @@
                 android:src="@drawable/add" />
 
         </LinearLayout>
+        -->
     </ScrollView>
 
     <ListView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/listView2"
+        android:id="@+id/servers"
         android:layout_below="@+id/mainForm"
         android:layout_alignParentStart="true"
         android:layout_above="@+id/start" />
+
+
 </RelativeLayout>

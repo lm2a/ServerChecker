@@ -7,6 +7,13 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.MalformedURLException;
+import java.net.Socket;
+import java.net.URL;
+
 /**
  * Created by lemenzm on 10/09/2016.
  */
@@ -51,5 +58,47 @@ public class Util {
         } else {
             return false;
         }
+    }
+
+
+    public static boolean isReachable(String addr, int openPort, int timeOutMillis) {
+        // Any Open port on other machine
+        // openPort =  22 - ssh, 80 or 443 - webserver, 25 - mailserver etc.
+        boolean b = false;
+        try {
+            //try (
+                    Socket soc = new Socket();
+            //) {
+                //InetAddress addr = new InetSocketAddress(addr, openPort)
+                soc.connect(new InetSocketAddress(addr, openPort), timeOutMillis);
+            //}
+            b = true;
+        } catch (IOException ex) {
+            b = false;
+        }
+        return b;
+    }
+
+    static public boolean isServerReachable(Context context, String url) {
+        ConnectivityManager connMan = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = connMan.getActiveNetworkInfo();
+        if (netInfo != null && netInfo.isConnected()) {
+            try {
+                URL urlServer = new URL(url);
+                HttpURLConnection urlConn = (HttpURLConnection) urlServer.openConnection();
+                urlConn.setConnectTimeout(3000); //<- 3Seconds Timeout
+                urlConn.connect();
+                if (urlConn.getResponseCode() == 200) {
+                    return true;
+                } else {
+                    return false;
+                }
+            } catch (MalformedURLException e1) {
+                return false;
+            } catch (IOException e) {
+                return false;
+            }
+        }
+        return false;
     }
 }
