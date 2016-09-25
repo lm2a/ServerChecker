@@ -97,9 +97,27 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Add"
+		android:layout_marginTop="10dp"
         android:background="@color/BlueLight"
         android:id="@+id/add_site"
         android:layout_gravity="center_horizontal" />
-
+	<Button
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="Delete"
+		android:layout_marginTop="10dp"
+		android:visibility="gone"
+		android:background="@color/BlueLight"
+		android:id="@+id/delete_site"
+		android:layout_gravity="center_horizontal" />
+	<Button
+		android:layout_width="match_parent"
+		android:layout_height="wrap_content"
+		android:text="Update"
+		android:layout_marginTop="10dp"
+		android:visibility="gone"
+		android:background="@color/BlueLight"
+		android:id="@+id/update_site"
+		android:layout_gravity="center_horizontal" />
 </LinearLayout>
 

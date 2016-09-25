@@ -12,19 +12,19 @@ public class Host {
     boolean notification;
     boolean emails;
     boolean lastCheck;
-    List<String> allEmails;
+    List<Email> allEmails;
     public Host() {
     }
 
-    public List<String> getAllEmails() {
+    public List<Email> getAllEmails() {
         return allEmails;
     }
 
-    public void setAllEmails(List<String> allEmails) {
+    public void setAllEmails(List<Email> allEmails) {
         this.allEmails = allEmails;
     }
 
-    public Host(boolean emails, String host, long id, boolean notification, boolean lastCheck, List<String> allEmails) {
+    public Host(boolean emails, String host, long id, boolean notification, boolean lastCheck, List<Email> allEmails) {
         this.emails = emails;
         this.host = host;
         this.id = id;

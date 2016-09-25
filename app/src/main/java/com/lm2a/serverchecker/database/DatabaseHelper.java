@@ -116,11 +116,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         // insert row
         long host_id = db.insert(TABLE_HOSTS, null, values);
         long email_id;
-        List<String> emails = host.getAllEmails();
-        for (String e : emails) {
-            Email em = new Email();
-            em.setEmail(e);
-            email_id = createEmail(em);
+        List<Email> emails = host.getAllEmails();
+        for (Email e : emails) {
+            email_id = createEmail(e);
             createHostEmail(host_id, email_id);
         }
         return host_id;
@@ -178,6 +176,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 ht.setLastCheck(l);
                 ht.setEmails(e);
                 // adding to todo list
+                if(e){
+                    ht.setAllEmails(getEmailsByHost(ht.getId()));
+                }
+
+
                 hosts.add(ht);
             } while (c.moveToNext());
         }
@@ -249,7 +252,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_LAST_CHECK, host.isLastCheck() ?1:0);
         values.put(KEY_EMAIL, host.isEmails()?1:0);
         values.put(KEY_CREATED_AT, getDateTime());
-
+        List<Email> emails = host.getAllEmails();
+        for (Email e : emails) {
+            long email_id = createEmail(e);
+            createHostEmail(host.getId(), email_id);
+        }
 
         // updating row
         return db.update(TABLE_HOSTS, values, KEY_ID + " = ?",
@@ -384,6 +391,35 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             db.close();
     }
 
+    /**
+     * get single todo
+     */
+    public List<Email> getEmailsByHost(long host_id) {
+        List<Email> emails = new ArrayList<Email>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String selectQuery = "SELECT  * FROM " + TABLE_HOSTS + " ht, "+ TABLE_EMAILS + " el, "+ TABLE_HOSTS_EMAILS + " he "
+                + "WHERE "
+                + "he." + KEY_HOST_ID + " = " + host_id
+                + " AND he." + KEY_HOST_ID + " = " + "ht." +  KEY_ID
+                + " AND " + "he." + KEY_EMAIL_ID + " = " + "el." + KEY_ID;
+
+        Log.e(LOG, selectQuery);
+
+        Cursor c = db.rawQuery(selectQuery, null);
+
+        // looping through all rows and adding to list
+        if (c.moveToFirst()) {
+            do {
+                Email email = new Email();
+                email.setEmail(c.getString((c.getColumnIndex(KEY_EMAIL_ADDRESS))));
+                // adding to todo list
+                emails.add(email);
+            } while (c.moveToNext());
+        }
+        return emails;
+    }
 
     /**
      * get single todo

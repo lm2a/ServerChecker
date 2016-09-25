@@ -19,6 +19,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -39,6 +40,7 @@ import com.lm2a.serverchecker.billing.util.Inventory;
 import com.lm2a.serverchecker.billing.util.Purchase;
 import com.lm2a.serverchecker.database.DatabaseHelper;
 import com.lm2a.serverchecker.model.Config;
+import com.lm2a.serverchecker.model.Email;
 import com.lm2a.serverchecker.model.Host;
 import com.lm2a.serverchecker.services.BackgroundService;
 import com.lm2a.serverchecker.services.Constants;
@@ -325,6 +327,7 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
 
     ListView mHostsList;
     CustomAdapter mHostAdapter;
+    List<Host> mHosts;
 
     private void setUiPro(final Config config){
         mRadioGroup = (RadioGroup) findViewById(R.id.radioButtonTimeUnit);
@@ -335,16 +338,22 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
         mHostsList = (ListView) findViewById(R.id.servers);
 
         DatabaseHelper databaseHelper = new DatabaseHelper(this);
-        List<Host> hosts = databaseHelper.getAllHosts();
+        mHosts = databaseHelper.getAllHosts();
 
-        mHostAdapter = new CustomAdapter(this, hosts, getResources());
+        mHostAdapter = new CustomAdapter(this, mHosts, getResources());
         mHostsList.setAdapter(mHostAdapter);
+        mHostsList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                showHostsDialog(mHosts.get(i));
+            }
 
+        });
         Button add = (Button) findViewById(R.id.server);
         add.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                showHostsDialog();
+                showHostsDialog(null);
             }
         });
 
@@ -622,7 +631,17 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
 
     boolean mNotificationOk, mEmailOk;
 
-    private void showHostsDialog(){
+    public String getStringFromList(List<Email> emails){
+        StringBuffer sb = new StringBuffer();
+        for(Email e: emails){
+            sb.append(e.getEmail() + ", ");
+        }
+        String x = sb.toString();
+        String r = x.substring(0, x.length()-2);
+        return r;
+    }
+
+    private void showHostsDialog(final Host host){
         //Preparing views
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.hosts, null);
@@ -635,6 +654,26 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
         final EditText emailsArea = (EditText) layout.findViewById(R.id.emails_area);
         final Button add = (Button) layout.findViewById(R.id.add_site);
         final ImageView checkResult = (ImageView)layout.findViewById(R.id.check_result);
+        final Button delete = (Button) layout.findViewById(R.id.delete_site);
+        final Button update = (Button) layout.findViewById(R.id.update_site);
+        if(host != null){
+            delete.setVisibility(View.VISIBLE);
+            update.setVisibility(View.VISIBLE);
+            add.setVisibility(View.GONE);
+            site.setText(host.getHost());
+            notification.setChecked(host.isNotification());
+            email.setChecked(host.isEmails());
+            if(host.isEmails()){
+               emailsArea.setVisibility(View.VISIBLE);
+            }else{
+                emailsArea.setVisibility(View.GONE);
+            }
+            emailsArea.setText(getStringFromList(host.getAllEmails()));
+        }else{
+            delete.setVisibility(View.GONE);
+            update.setVisibility(View.GONE);
+            add.setVisibility(View.VISIBLE);
+        }
         //Building dialog
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(layout);
@@ -732,16 +771,63 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
                     }
                     if(mEmailOk){
                         host.setEmails(true);
-                        List<String> emails = getEmailsFromTextArea(emailsArea.getText().toString());
+                        List<Email> emails = getEmailsFromTextArea(emailsArea.getText().toString());
                         host.setAllEmails(emails);
                     }else{
                         host.setEmails(false);
                     }
                     DatabaseHelper db = new DatabaseHelper(getApplicationContext());
                     db.createHost(host);
+                    mHosts = db.getAllHosts();
                     mHostAdapter.notifyDataSetChanged();
                     mAlertDialog.cancel();
                 }
+            }
+        });
+        update.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                final String url = site.getText().toString();
+                if((url!=null)&&(!url.isEmpty())){
+                    DatabaseHelper db = new DatabaseHelper(getApplicationContext());
+                    //save host and emails
+                    host.setHost(url);
+                    if(notification.isChecked()){
+                        host.setNotification(true);
+                    }else{
+                        host.setNotification(false);
+                    }
+                    if(email.isChecked()){
+                        host.setEmails(true);
+                        List<Email> emails = getEmailsFromTextArea(emailsArea.getText().toString());
+                        host.setAllEmails(emails);
+                    }else{
+                        host.setEmails(false);
+                        host.setAllEmails(null);
+                    }
+                    
+                    db.deleteHostEmail(host.getId());
+                    db.updateHost(host);
+                    mHosts = db.getAllHosts();
+                    mHostAdapter.notifyDataSetChanged();
+                    mAlertDialog.cancel();
+                }
+            }
+        });
+        delete.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                    DatabaseHelper db = new DatabaseHelper(getApplicationContext());
+                    //save host and emails
+                    if(mEmailOk){
+                        db.deleteHostEmail(host.getId());
+                    }
+                    db.deleteHost(host.getId());
+                    mHosts = db.getAllHosts();
+                    mHostAdapter.notifyDataSetChanged();
+                    mAlertDialog.cancel();
             }
         });
         mAlertDialog = builder.create();
@@ -753,9 +839,15 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
     int mConnectionCheckResult=-1;
 
 
-    public List<String> getEmailsFromTextArea(String allTogether){
+    public List<Email> getEmailsFromTextArea(String allTogether){
         List<String> emails = Arrays.asList(allTogether.split("\\s*,\\s*"));
-        return emails;
+        List<Email> es = new ArrayList<>();
+        for(String e: emails){
+            Email email = new Email();
+            email.setEmail(e);
+            es.add(email);
+        }
+        return es;
     }
 
 

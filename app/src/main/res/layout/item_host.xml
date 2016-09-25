@@ -19,12 +19,16 @@
 			android:layout_height="wrap_content"
 			android:layout_gravity="center_vertical"
 			android:text="Notification"
+			android:clickable="false"
+			android:focusable="false"
 			android:id="@+id/cb_notification" />
 		<CheckBox
 			android:layout_width="wrap_content"
 			android:layout_height="wrap_content"
 			android:layout_gravity="center_vertical"
 			android:text="Email"
+			android:clickable="false"
+			android:focusable="false"
 			android:id="@+id/cb_email" />
 	</LinearLayout>
 	<ImageView
