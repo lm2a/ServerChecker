@@ -4,7 +4,7 @@ package com.lm2a.serverchecker.model;
  * Created by lemenzm on 08/09/2016.
  */
 public class Email {
-    int id;
+    long id;
     String email;
 
     public Email() {
@@ -14,7 +14,7 @@ public class Email {
         this.email = email;
     }
 
-    public Email(String email, int id) {
+    public Email(String email, long id) {
         this.email = email;
         this.id = id;
     }
@@ -27,11 +27,11 @@ public class Email {
         this.email = email;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 }

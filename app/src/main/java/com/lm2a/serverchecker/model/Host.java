@@ -1,24 +1,37 @@
 package com.lm2a.serverchecker.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by lemenzm on 08/09/2016.
  */
 public class Host {
-    int id;
+    long id;
     String host;
-    String port;
     boolean notification;
     boolean emails;
-
+    boolean lastCheck;
+    List<String> allEmails;
     public Host() {
     }
 
-    public Host(boolean emails, String host, int id, boolean notification, String port) {
+    public List<String> getAllEmails() {
+        return allEmails;
+    }
+
+    public void setAllEmails(List<String> allEmails) {
+        this.allEmails = allEmails;
+    }
+
+    public Host(boolean emails, String host, long id, boolean notification, boolean lastCheck, List<String> allEmails) {
         this.emails = emails;
         this.host = host;
         this.id = id;
         this.notification = notification;
-        this.port = port;
+        this.lastCheck = lastCheck;
+        this.allEmails = allEmails;
+
     }
 
     public boolean isEmails() {
@@ -37,11 +50,11 @@ public class Host {
         this.host = host;
     }
 
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -53,11 +66,11 @@ public class Host {
         this.notification = notification;
     }
 
-    public String getPort() {
-        return port;
+    public boolean isLastCheck() {
+        return lastCheck;
     }
 
-    public void setPort(String port) {
-        this.port = port;
+    public void setLastCheck(boolean lastCheck) {
+        this.lastCheck = lastCheck;
     }
 }

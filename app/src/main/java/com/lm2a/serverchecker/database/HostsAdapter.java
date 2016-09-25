@@ -20,7 +20,7 @@ public class HostsAdapter extends ArrayAdapter<Host> {
     @Override
     public View getView(int position, View convertView, ViewGroup parent) {
        // Get the data item for this position
-       Host host = getItem(position);
+/*       Host host = getItem(position);
        // Check if an existing view is being reused, otherwise inflate the view
        if (convertView == null) {
           convertView = LayoutInflater.from(getContext()).inflate(R.layout.item_host, parent, false);
@@ -31,7 +31,7 @@ public class HostsAdapter extends ArrayAdapter<Host> {
        // Populate the data into the template view using the data object
         tvHost.setText(host.getHost());
         tvPrt.setText(host.getPort());
-       // Return the completed view to render on screen
+       // Return the completed view to render on screen*/
        return convertView;
    }
 }

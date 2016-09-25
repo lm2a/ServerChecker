@@ -19,6 +19,12 @@ import java.net.URL;
  */
 public class Util {
 
+    public static final int SERVER_OK = 0;
+    public static final int SERVER_KO = 1;
+    public static final int URL_MALFORMED = 2;
+    public static final int IO_FAILURE = 3;
+    public static final int DEVICE_NOT_CONNECTED = 4;
+
     public static String getDeviceData(Context context, String techMessage, String url) {
         String manufacturer = Build.MANUFACTURER;
         String model = Build.MODEL;
@@ -79,7 +85,10 @@ public class Util {
         return b;
     }
 
-    static public boolean isServerReachable(Context context, String url) {
+
+
+
+    static public int isServerReachable(Context context, String url) {
         ConnectivityManager connMan = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = connMan.getActiveNetworkInfo();
         if (netInfo != null && netInfo.isConnected()) {
@@ -89,16 +98,16 @@ public class Util {
                 urlConn.setConnectTimeout(3000); //<- 3Seconds Timeout
                 urlConn.connect();
                 if (urlConn.getResponseCode() == 200) {
-                    return true;
+                    return SERVER_OK;
                 } else {
-                    return false;
+                    return SERVER_KO;
                 }
             } catch (MalformedURLException e1) {
-                return false;
+                return URL_MALFORMED;
             } catch (IOException e) {
-                return false;
+                return IO_FAILURE;
             }
         }
-        return false;
+        return DEVICE_NOT_CONNECTED;
     }
 }

@@ -1,14 +1,37 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
 	android:layout_width="match_parent"
-	android:layout_height="match_parent" >
+	android:layout_height="wrap_content"
+	android:gravity="center_vertical"
+	android:orientation="horizontal">
 	<TextView
-		android:id="@+id/tvHost"
+		android:id="@+id/tv_host"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
+		android:layout_weight="5"
 		android:text="Name" />
-	<TextView
-		android:id="@+id/tvPort"
+	<LinearLayout
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:text="HomeTown" />
+		android:layout_weight="1"
+		android:orientation="vertical">
+		<CheckBox
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_vertical"
+			android:text="Notification"
+			android:id="@+id/cb_notification" />
+		<CheckBox
+			android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_gravity="center_vertical"
+			android:text="Email"
+			android:id="@+id/cb_email" />
+	</LinearLayout>
+	<ImageView
+		android:layout_width="20dp"
+		android:layout_height="20dp"
+		android:layout_weight="1"
+		android:layout_gravity="center_vertical"
+		android:src="@mipmap/gray"
+		android:id="@+id/iv_check_result" />
 </LinearLayout>

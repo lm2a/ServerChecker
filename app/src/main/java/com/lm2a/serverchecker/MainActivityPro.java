@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.RadioGroup;
 import android.widget.TextView;
@@ -36,13 +37,17 @@ import com.lm2a.serverchecker.billing.util.IabHelper;
 import com.lm2a.serverchecker.billing.util.IabResult;
 import com.lm2a.serverchecker.billing.util.Inventory;
 import com.lm2a.serverchecker.billing.util.Purchase;
+import com.lm2a.serverchecker.database.DatabaseHelper;
 import com.lm2a.serverchecker.model.Config;
+import com.lm2a.serverchecker.model.Host;
 import com.lm2a.serverchecker.services.BackgroundService;
 import com.lm2a.serverchecker.services.Constants;
+import com.lm2a.serverchecker.utils.CustomAdapter;
 import com.lm2a.serverchecker.utils.Util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class MainActivityPro extends AppCompatActivity implements IabBroadcastReceiver.IabBroadcastListener,
         View.OnClickListener {
@@ -318,6 +323,8 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
         }
     };
 
+    ListView mHostsList;
+    CustomAdapter mHostAdapter;
 
     private void setUiPro(final Config config){
         mRadioGroup = (RadioGroup) findViewById(R.id.radioButtonTimeUnit);
@@ -325,7 +332,13 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
         mNumberPicker.setMinValue(0);
         mNumberPicker.setMaxValue(30);
         mNumberPicker.setWrapSelectorWheel(false);
+        mHostsList = (ListView) findViewById(R.id.servers);
 
+        DatabaseHelper databaseHelper = new DatabaseHelper(this);
+        List<Host> hosts = databaseHelper.getAllHosts();
+
+        mHostAdapter = new CustomAdapter(this, hosts, getResources());
+        mHostsList.setAdapter(mHostAdapter);
 
         Button add = (Button) findViewById(R.id.server);
         add.setOnClickListener(new View.OnClickListener() {
@@ -513,10 +526,12 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
             SharedPreferences sharedPrefs = PreferenceManager
                     .getDefaultSharedPreferences(this);
             boolean l = sharedPrefs.getBoolean(Constants.LAST_CHECK, true);
-            if (l) {
-                mLastCheck.setImageResource(R.mipmap.green);
-            } else {
-                mLastCheck.setImageResource(R.mipmap.red);
+            if(mLastCheck!=null) {
+                if (l) {
+                    mLastCheck.setImageResource(R.mipmap.green);
+                } else {
+                    mLastCheck.setImageResource(R.mipmap.red);
+                }
             }
         }
     }
@@ -605,13 +620,15 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
         updateUIWithLastCheck();
     }
 
+    boolean mNotificationOk, mEmailOk;
+
     private void showHostsDialog(){
         //Preparing views
         LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
         View layout = inflater.inflate(R.layout.hosts, null);
         //layout_root should be the name of the "top-level" layout node in the dialog_layout.xml file.
         final EditText site = (EditText) layout.findViewById(R.id.site);
-        final EditText port = (EditText) layout.findViewById(R.id.port);
+        //final EditText port = (EditText) layout.findViewById(R.id.port);
         final CheckBox notification = (CheckBox)layout.findViewById(R.id.notification);
         final CheckBox email = (CheckBox)layout.findViewById(R.id.email);
         final Button checkNow = (Button)layout.findViewById(R.id.checknow);
@@ -622,14 +639,31 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setView(layout);
 
+
+        notification.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                //is chkIos checked?
+                if (((CheckBox) v).isChecked()) {
+                    mNotificationOk = true;
+                } else {
+                    mNotificationOk = false;
+                    emailsArea.setVisibility(View.GONE);
+                }
+            }
+        });
+
         email.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 //is chkIos checked?
                 if (((CheckBox) v).isChecked()) {
+                    mEmailOk = true;
                     emailsArea.setVisibility(View.VISIBLE);
                 } else {
+                    mEmailOk = false;
                     emailsArea.setVisibility(View.GONE);
                 }
             }
@@ -640,28 +674,36 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
             @Override
             public void onClick(View v) {
                 final String url = site.getText().toString();
-                String prt = port.getText().toString();
-                final int p;
-                if((url!=null)&&(!url.isEmpty())){
-                    if((prt==null)||(prt.isEmpty())){
-                        p = 80;
-                    }else{
-                        p = Integer.parseInt(prt);
-                    }
 
+                if((url!=null)&&(!url.isEmpty())){
                     Thread t = new Thread(new Runnable() {
                         @Override
                         public void run() {
                             //mCheckOk = Util.isReachable(url, p, 30000);
-                            mCheckOk = Util.isServerReachable(MainActivityPro.this, "http://"+url+":"+p);
+                            mConnectionCheckResult = Util.isServerReachable(MainActivityPro.this, url);
                             runOnUiThread(new Runnable() {
 
                                 @Override
                                 public void run() {
-                                    if( mCheckOk){
-                                        checkResult.setImageResource(R.mipmap.green);
-                                    }else{
-                                        checkResult.setImageResource(R.mipmap.red);
+                                    switch(mConnectionCheckResult){
+                                        case Util.SERVER_OK:
+                                            checkResult.setImageResource(R.mipmap.green);
+                                            break;
+                                        case Util.SERVER_KO:
+                                            checkResult.setImageResource(R.mipmap.red);
+                                            break;
+                                        case Util.URL_MALFORMED:
+                                            checkResult.setImageResource(R.mipmap.gray);
+                                            site.setError("URL Malformed, check it, please");
+                                            break;
+                                        case Util.IO_FAILURE:
+                                            Toast.makeText(MainActivityPro.this, "I/O problem, please try again", Toast.LENGTH_SHORT).show();
+                                            checkResult.setImageResource(R.mipmap.gray);
+                                            break;
+                                        case Util.DEVICE_NOT_CONNECTED:
+                                            Toast.makeText(MainActivityPro.this, "Check your device' connection, please", Toast.LENGTH_SHORT).show();
+                                            checkResult.setImageResource(R.mipmap.gray);
+                                            break;
                                     }
                                 }
                             });
@@ -678,21 +720,43 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
 
             @Override
             public void onClick(View v) {
-
+                final String url = site.getText().toString();
+                if((url!=null)&&(!url.isEmpty())){
+                    //save host and emails
+                    Host host = new Host();
+                    host.setHost(url);
+                    if(mNotificationOk){
+                        host.setNotification(true);
+                    }else{
+                        host.setNotification(false);
+                    }
+                    if(mEmailOk){
+                        host.setEmails(true);
+                        List<String> emails = getEmailsFromTextArea(emailsArea.getText().toString());
+                        host.setAllEmails(emails);
+                    }else{
+                        host.setEmails(false);
+                    }
+                    DatabaseHelper db = new DatabaseHelper(getApplicationContext());
+                    db.createHost(host);
+                    mHostAdapter.notifyDataSetChanged();
+                    mAlertDialog.cancel();
+                }
             }
         });
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
+        mAlertDialog = builder.create();
+        mAlertDialog.show();
+    }
+
+    AlertDialog mAlertDialog;// = builder.create();
+
+    int mConnectionCheckResult=-1;
 
 
-
+    public List<String> getEmailsFromTextArea(String allTogether){
+        List<String> emails = Arrays.asList(allTogether.split("\\s*,\\s*"));
+        return emails;
     }
 
 
-boolean mCheckOk = false;
-
-
-    public ArrayList<String> getEmailsFromTextArea(String allTogether){
-        return (ArrayList<String>) Arrays.asList(allTogether.split(","));
-    }
 }

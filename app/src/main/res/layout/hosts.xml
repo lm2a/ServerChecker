@@ -29,6 +29,7 @@
 				android:layout_weight="1"
 				android:padding="5dp" />
 
+		<!--
 			<EditText
 				android:id="@+id/port"
 				android:layout_width="match_parent"
@@ -39,7 +40,7 @@
 				android:layout_weight="2"
 				android:background="@color/silver"
 				android:hint="port"
-				android:padding="5dp" />
+				android:padding="5dp" /> -->
 	</LinearLayout>
 
 

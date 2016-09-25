@@ -38,7 +38,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // NOTES Table - column nmaes
     private static final String KEY_URL = "url";
-    private static final String KEY_PORT = "port";
+    private static final String KEY_LAST_CHECK = "check_host";
     private static final String KEY_NOTIFICATION = "notification";
     private static final String KEY_EMAIL = "email";
 
@@ -48,7 +48,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String CREATE_TABLE_HOSTS = "CREATE TABLE "
             + TABLE_HOSTS + "(" + KEY_ID + " INTEGER PRIMARY KEY,"
             + KEY_URL + " TEXT,"
-            + KEY_PORT + " TEXT,"
+            + KEY_LAST_CHECK + " INTEGER,"
             + KEY_NOTIFICATION + " INTEGER,"
             + KEY_EMAIL + " INTEGER,"
             + KEY_CREATED_AT
@@ -108,20 +108,24 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_URL, host.getHost());
-        values.put(KEY_PORT, host.getPort());
-        values.put(KEY_NOTIFICATION, host.isNotification()?1:0);
-        values.put(KEY_EMAIL, host.isEmails()?1:0);
+        values.put(KEY_NOTIFICATION, host.isNotification() ? 1 : 0);
+        values.put(KEY_EMAIL, host.isEmails() ? 1 : 0);
+        values.put(KEY_LAST_CHECK, host.isLastCheck() ? 1 : 0);
         values.put(KEY_CREATED_AT, getDateTime());
 
         // insert row
         long host_id = db.insert(TABLE_HOSTS, null, values);
-
+        long email_id;
+        List<String> emails = host.getAllEmails();
+        for (String e : emails) {
+            Email em = new Email();
+            em.setEmail(e);
+            email_id = createEmail(em);
+            createHostEmail(host_id, email_id);
+        }
         return host_id;
     }
 
-    /**
-     * get single todo
-     */
     public Host getHost(long host_id) {
         SQLiteDatabase db = this.getReadableDatabase();
 
@@ -138,9 +142,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         Host td = new Host();
         td.setId(c.getInt(c.getColumnIndex(KEY_ID)));
         td.setHost(c.getString(c.getColumnIndex(KEY_URL)));
-        td.setPort(c.getString(c.getColumnIndex(KEY_PORT)));
         boolean b = (c.getInt(c.getColumnIndex(KEY_NOTIFICATION))==1)?true:false;
+        boolean l = (c.getInt(c.getColumnIndex(KEY_LAST_CHECK))==1)?true:false;
+        boolean e = (c.getInt(c.getColumnIndex(KEY_EMAIL))==1)?true:false;
         td.setNotification(b);
+        td.setLastCheck(l);
+        td.setEmails(e);
         //td.setCreatedAt(c.getString(c.getColumnIndex(KEY_CREATED_AT)));
 
         return td;
@@ -164,9 +171,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 Host ht = new Host();
                 ht.setId(c.getInt(c.getColumnIndex(KEY_ID)));
                 ht.setHost(c.getString(c.getColumnIndex(KEY_URL)));
-                ht.setPort(c.getString(c.getColumnIndex(KEY_PORT)));
                 boolean b = (c.getInt(c.getColumnIndex(KEY_NOTIFICATION))==1)?true:false;
+                boolean l = (c.getInt(c.getColumnIndex(KEY_LAST_CHECK))==1)?true:false;
+                boolean e = (c.getInt(c.getColumnIndex(KEY_EMAIL))==1)?true:false;
                 ht.setNotification(b);
+                ht.setLastCheck(l);
+                ht.setEmails(e);
                 // adding to todo list
                 hosts.add(ht);
             } while (c.moveToNext());
@@ -235,8 +245,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         ContentValues values = new ContentValues();
         values.put(KEY_URL, host.getHost());
-        values.put(KEY_PORT, host.getPort());
         values.put(KEY_NOTIFICATION, host.isNotification()?1:0);
+        values.put(KEY_LAST_CHECK, host.isLastCheck() ?1:0);
         values.put(KEY_EMAIL, host.isEmails()?1:0);
         values.put(KEY_CREATED_AT, getDateTime());
 
