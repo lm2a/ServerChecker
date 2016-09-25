@@ -806,7 +806,7 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
                         host.setEmails(false);
                         host.setAllEmails(null);
                     }
-                    
+
                     db.deleteHostEmail(host.getId());
                     db.updateHost(host);
                     mHosts = db.getAllHosts();

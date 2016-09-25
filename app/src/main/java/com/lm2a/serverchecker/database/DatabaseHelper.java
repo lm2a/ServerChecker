@@ -3,6 +3,7 @@ package com.lm2a.serverchecker.database;
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
@@ -32,8 +33,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String TABLE_EMAILS = "emails";
     private static final String TABLE_HOSTS_EMAILS = "hosts_emails";
 
-    // Common column names
+    // HOSTS_EMAILS Table - column names
     private static final String KEY_ID = "id";
+    private static final String KEY_HOST_ID = "host_id";
+    private static final String KEY_EMAIL_ID = "email_id";
+
+    // Common column names
     private static final String KEY_CREATED_AT = "created_at";
 
     // NOTES Table - column nmaes
@@ -43,10 +48,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     private static final String KEY_EMAIL = "email";
 
 
+
     // Table Create Statements
     // Todo table create statement
     private static final String CREATE_TABLE_HOSTS = "CREATE TABLE "
-            + TABLE_HOSTS + "(" + KEY_ID + " INTEGER PRIMARY KEY,"
+            + TABLE_HOSTS + "(" + KEY_HOST_ID + " INTEGER PRIMARY KEY,"
             + KEY_URL + " TEXT,"
             + KEY_LAST_CHECK + " INTEGER,"
             + KEY_NOTIFICATION + " INTEGER,"
@@ -59,13 +65,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
     // EMAIL table create statement
     private static final String CREATE_TABLE_EMAIL = "CREATE TABLE "
-            + TABLE_EMAILS + "(" + KEY_ID + " INTEGER PRIMARY KEY,"
+            + TABLE_EMAILS + "(" + KEY_EMAIL_ID + " INTEGER PRIMARY KEY,"
             + KEY_EMAIL_ADDRESS + " TEXT,"
             + KEY_CREATED_AT + " DATETIME" + ")";
 
-    // HOSTS_EMAILS Table - column names
-    private static final String KEY_HOST_ID = "host_id";
-    private static final String KEY_EMAIL_ID = "email_id";
+
 
     // HOSTS_EMAILS table create statement
     private static final String CREATE_TABLE_HOSTS_EMAILS = "CREATE TABLE "
@@ -128,7 +132,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         SQLiteDatabase db = this.getReadableDatabase();
 
         String selectQuery = "SELECT  * FROM " + TABLE_HOSTS + " WHERE "
-                + KEY_ID + " = " + host_id;
+                + KEY_HOST_ID + " = " + host_id;
 
         Log.e(LOG, selectQuery);
 
@@ -162,12 +166,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor c = db.rawQuery(selectQuery, null);
+        Log.i("SQLite","Debug: "+DatabaseUtils.dumpCursorToString(c));
 
         // looping through all rows and adding to list
         if (c.moveToFirst()) {
             do {
                 Host ht = new Host();
-                ht.setId(c.getInt(c.getColumnIndex(KEY_ID)));
+                ht.setId(c.getInt(c.getColumnIndex(KEY_HOST_ID)));
                 ht.setHost(c.getString(c.getColumnIndex(KEY_URL)));
                 boolean b = (c.getInt(c.getColumnIndex(KEY_NOTIFICATION))==1)?true:false;
                 boolean l = (c.getInt(c.getColumnIndex(KEY_LAST_CHECK))==1)?true:false;
@@ -259,7 +264,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         // updating row
-        return db.update(TABLE_HOSTS, values, KEY_ID + " = ?",
+        return db.update(TABLE_HOSTS, values, KEY_HOST_ID + " = ?",
                 new String[] { String.valueOf(host.getId()) });
     }
 
@@ -268,7 +273,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public void deleteHost(long host_id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_HOSTS, KEY_ID + " = ?",
+        db.delete(TABLE_HOSTS, KEY_HOST_ID + " = ?",
                 new String[] { String.valueOf(host_id) });
     }
 
@@ -307,7 +312,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         if (c.moveToFirst()) {
             do {
                 Email t = new Email();
-                t.setId(c.getInt((c.getColumnIndex(KEY_ID))));
+                t.setId(c.getInt((c.getColumnIndex(KEY_EMAIL_ID))));
                 t.setEmail(c.getString(c.getColumnIndex(KEY_EMAIL_ADDRESS)));
                 // adding to tags list
                 emails.add(t);
@@ -326,7 +331,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         values.put(KEY_EMAIL_ADDRESS, email.getEmail());
 
         // updating row
-        return db.update(TABLE_EMAILS, values, KEY_ID + " = ?",
+        return db.update(TABLE_EMAILS, values, KEY_EMAIL_ID + " = ?",
                 new String[] { String.valueOf(email.getId()) });
     }
 
@@ -336,7 +341,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     public void deleteEmail(Email tag) {
         SQLiteDatabase db = this.getWritableDatabase();
          // now delete the tag
-        db.delete(TABLE_EMAILS, KEY_ID + " = ?",
+        db.delete(TABLE_EMAILS, KEY_EMAIL_ID + " = ?",
                 new String[] { String.valueOf(tag.getId()) });
     }
 
@@ -380,7 +385,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
      */
     public void deleteHostEmail(long id) {
         SQLiteDatabase db = this.getWritableDatabase();
-        db.delete(TABLE_HOSTS_EMAILS, KEY_ID + " = ?",
+        db.delete(TABLE_HOSTS_EMAILS, KEY_HOST_ID + " = ?",
                 new String[] { String.valueOf(id) });
     }
 
@@ -402,17 +407,19 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String selectQuery = "SELECT  * FROM " + TABLE_HOSTS + " ht, "+ TABLE_EMAILS + " el, "+ TABLE_HOSTS_EMAILS + " he "
                 + "WHERE "
                 + "he." + KEY_HOST_ID + " = " + host_id
-                + " AND he." + KEY_HOST_ID + " = " + "ht." +  KEY_ID
-                + " AND " + "he." + KEY_EMAIL_ID + " = " + "el." + KEY_ID;
+                + " AND he." + KEY_HOST_ID + " = " + "ht." +  KEY_HOST_ID
+                + " AND " + "he." + KEY_EMAIL_ID + " = " + "el." + KEY_EMAIL_ID;
 
         Log.e(LOG, selectQuery);
 
         Cursor c = db.rawQuery(selectQuery, null);
+        Log.i("SQLite","Debug: "+DatabaseUtils.dumpCursorToString(c));
 
         // looping through all rows and adding to list
         if (c.moveToFirst()) {
             do {
                 Email email = new Email();
+                email.setId(c.getInt(c.getColumnIndex(KEY_EMAIL_ID)));
                 email.setEmail(c.getString((c.getColumnIndex(KEY_EMAIL_ADDRESS))));
                 // adding to todo list
                 emails.add(email);
@@ -432,8 +439,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         String selectQuery = "SELECT  * FROM " + TABLE_HOSTS + " ht, "+ TABLE_EMAILS + " el, "+ TABLE_HOSTS_EMAILS + " he "
                 + "WHERE "
                 + "ht."+KEY_URL+" = '"+url+ "'"
-                + " AND " + "he." + KEY_HOST_ID + " = " + "ht." +  KEY_ID
-                + " AND " + "he." + KEY_EMAIL_ID + " = " + "el." + KEY_ID;
+                + " AND " + "he." + KEY_HOST_ID + " = " + "ht." +  KEY_HOST_ID
+                + " AND " + "he." + KEY_EMAIL_ID + " = " + "el." + KEY_HOST_ID;
 
         Log.e(LOG, selectQuery);
 
