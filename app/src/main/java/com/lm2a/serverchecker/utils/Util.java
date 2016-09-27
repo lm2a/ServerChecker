@@ -7,12 +7,17 @@ import android.net.NetworkInfo;
 import android.os.Build;
 import android.telephony.TelephonyManager;
 
+import com.lm2a.serverchecker.model.Email;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Socket;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * Created by lemenzm on 10/09/2016.
@@ -50,9 +55,14 @@ public class Util {
                 .append("Current Api Version: "+currentapiVersion+"\n")
                 .append("Model: "+model+"\n")
                 .append("Country Code: "+countryCode+"\n")
-                .append("AA App Version: "+versionName+"\n")
-                .append("Connection State: "+connectionState+"\n")
-                .append("Tech Message: "+techMessage+" - problem raise trying to reach "+url+"\n");
+                .append("ServerChecker App Version: "+versionName+"\n")
+                .append("Connection State: "+connectionState+"\n");
+        if(url!=null){
+            stringBuffer.append("Tech Message: "+techMessage+" - problem raise trying to reach "+url+"\n");
+        }else{
+            stringBuffer.append("Tech Message: "+techMessage+"\n");
+        }
+
         return stringBuffer.toString();
     }
 
@@ -109,5 +119,28 @@ public class Util {
             }
         }
         return DEVICE_NOT_CONNECTED;
+    }
+
+
+
+    public static String getStringFromList(List<Email> emails){
+        StringBuffer sb = new StringBuffer();
+        for(Email e: emails){
+            sb.append(e.getEmail() + ", ");
+        }
+        String x = sb.toString();
+        String r = x.substring(0, x.length()-2);
+        return r;
+    }
+
+    public static List<Email> getEmailsFromTextArea(String allTogether){
+        List<String> emails = Arrays.asList(allTogether.split("\\s*,\\s*"));
+        List<Email> es = new ArrayList<>();
+        for(String e: emails){
+            Email email = new Email();
+            email.setEmail(e);
+            es.add(email);
+        }
+        return es;
     }
 }

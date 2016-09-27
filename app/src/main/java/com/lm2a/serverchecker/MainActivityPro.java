@@ -631,15 +631,7 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
 
     boolean mNotificationOk, mEmailOk;
 
-    public String getStringFromList(List<Email> emails){
-        StringBuffer sb = new StringBuffer();
-        for(Email e: emails){
-            sb.append(e.getEmail() + ", ");
-        }
-        String x = sb.toString();
-        String r = x.substring(0, x.length()-2);
-        return r;
-    }
+
 
     private void showHostsDialog(final Host host){
         //Preparing views
@@ -668,7 +660,7 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
             }else{
                 emailsArea.setVisibility(View.GONE);
             }
-            emailsArea.setText(getStringFromList(host.getAllEmails()));
+            emailsArea.setText(Util.getStringFromList(host.getAllEmails()));
         }else{
             delete.setVisibility(View.GONE);
             update.setVisibility(View.GONE);
@@ -771,7 +763,7 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
                     }
                     if(mEmailOk){
                         host.setEmails(true);
-                        List<Email> emails = getEmailsFromTextArea(emailsArea.getText().toString());
+                        List<Email> emails = Util.getEmailsFromTextArea(emailsArea.getText().toString());
                         host.setAllEmails(emails);
                     }else{
                         host.setEmails(false);
@@ -800,7 +792,7 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
                     }
                     if(email.isChecked()){
                         host.setEmails(true);
-                        List<Email> emails = getEmailsFromTextArea(emailsArea.getText().toString());
+                        List<Email> emails = Util.getEmailsFromTextArea(emailsArea.getText().toString());
                         host.setAllEmails(emails);
                     }else{
                         host.setEmails(false);
@@ -839,16 +831,6 @@ public class MainActivityPro extends AppCompatActivity implements IabBroadcastRe
     int mConnectionCheckResult=-1;
 
 
-    public List<Email> getEmailsFromTextArea(String allTogether){
-        List<String> emails = Arrays.asList(allTogether.split("\\s*,\\s*"));
-        List<Email> es = new ArrayList<>();
-        for(String e: emails){
-            Email email = new Email();
-            email.setEmail(e);
-            es.add(email);
-        }
-        return es;
-    }
 
 
 }

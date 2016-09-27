@@ -14,7 +14,6 @@ import android.net.Uri;
 import android.os.SystemClock;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 import com.lm2a.serverchecker.MainActivity;
@@ -26,10 +25,6 @@ import com.lm2a.serverchecker.model.Email;
 import com.lm2a.serverchecker.model.Host;
 import com.lm2a.serverchecker.utils.Util;
 
-import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
 import java.util.Date;
 import java.util.List;
 
@@ -68,7 +63,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
     private void doPeriodicTask(Context context) {
         // Periodic task(s) go here ...
-        check();
+        checkStandard();
     }
 
     public void restartPeriodicTaskHeartBeat(Context context) {
@@ -102,7 +97,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
     private static final int TIME_OUT = 60000;
 
 
-    private void check() {
+    private void checkStandard() {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -118,7 +113,7 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
 
                 boolean b1 = getLastCheckResult();
-                setLastCheckResult(isAlive);//save last check in preferences
+                setLastCheckResult(isAlive);//save last checkStandard in preferences
                 if(b1 != isAlive){//if current result is different from the last we should update Service to update Activity's UI
                     Intent i = new Intent();
                     i.setAction(Constants.INTENT_ACTION_UPDATE);
@@ -129,6 +124,105 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         thread.start();
 
 
+    }
+
+    private void checkPro() {
+        DatabaseHelper db = new DatabaseHelper(mContext);
+        final List<Host> hosts = db.getAllHosts();
+
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Date now = new Date();
+                for(Host h: hosts){
+                    int r = Util.isServerReachable(mContext, h.getHost());
+                    switch(r){
+                        case Util.SERVER_OK:
+                            Log.i("TAG", "lm2a Alive");
+                            setLastCheckResult(true);
+                            notifyState(h);
+                            break;
+                        case Util.SERVER_KO:
+                            setLastCheckResult(false);
+                            Log.i("TAG", "lm2a KO");
+                            if(h.isEmails()){
+                                sentReportToEverybody(h.getAllEmails(), h.getHost() +" was KO" + " at"+now.toString());
+                            }
+                            if(h.isNotification()){
+                                showNotification(now.toString()+":"+h.getHost() + " was not responding in 1'");
+                            }
+                            notifyState(h);
+                            break;
+                        case Util.URL_MALFORMED:
+                            setLastCheckResult(false);
+                            Log.i("TAG", "URL malformed");
+                            if(h.isEmails()){
+                                sentReportToEverybody(h.getAllEmails(), h.getHost() +" had URL malformed" + " at"+now.toString());
+                            }
+                            if(h.isNotification()){
+                                showNotification(now.toString()+":"+h.getHost() + " had URL malformed");
+                            }
+                            notifyState(h);
+                            break;
+                        case Util.IO_FAILURE:
+                            setLastCheckResult(false);
+                            Log.i("TAG", "I/O problem, please try again");
+                            if(h.isEmails()){
+                                sentReportToEverybody(h.getAllEmails(), h.getHost() +" had I/O problem" + " at"+now.toString());
+                            }
+                            if(h.isNotification()){
+                                showNotification(now.toString()+":"+h.getHost() + " had I/O problem");
+                            }
+                            notifyState(h);
+                            break;
+                        case Util.DEVICE_NOT_CONNECTED:
+                            setLastCheckResult(false);
+                            Log.i("TAG", "Device' connection failure");
+                            if(h.isEmails()){
+                                sentReportToEverybody(h.getAllEmails(), h.getHost() +" had I/O problem for your device connection" + " at"+now.toString());
+                            }
+                            if(h.isNotification()){
+                                showNotification(now.toString()+":"+h.getHost() + " had I/O problem for your device connection");
+                            }
+                            notifyState(h);
+                            break;
+                    }
+
+
+                }
+            }
+        });
+        thread.start();
+
+
+    }
+
+    private void notifyState(Host h){
+        //TODO add states to show the right light
+        //TODO add host id to update the right row
+        //checkResult.setImageResource(R.mipmap.gray);
+        Intent i = new Intent();
+        i.setAction(Constants.INTENT_ACTION_UPDATE);
+        mContext.sendBroadcast(i);
+    }
+
+    private void sentReportToEverybody(final List<Email> allEmails, String s) {
+        final String report = Util.getDeviceData(mContext, s, null);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    GMailSender sender = new GMailSender("aadroidreports@gmail.com", "AAIr3l4nd");
+                    sender.sendMail("ServerChecker Error Report",
+                            report,
+                            "aadroidreports@gmail.com",
+                            Util.getStringFromList(allEmails));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
     }
 
     private void setLastCheckResult(boolean lastCheck) {
@@ -221,7 +315,31 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
             public void run() {
                 try {
                     GMailSender sender = new GMailSender("aadroidreports@gmail.com", "AAIr3l4nd");
-                    sender.sendMail("AA Android App Error Report",
+                    sender.sendMail("ServerChecker Error Report",
+                            report,
+                            "aadroidreports@gmail.com",
+                            "lamenza@gmail.com, mariolamenza@gmail.com, mariolamenza@hotmail");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        t.start();
+
+
+    }
+
+    public void sendMassiveErrorReport(String txt, String url) {
+        DatabaseHelper db = new DatabaseHelper(mContext);
+        List<Email> emails = db.getEmailsByHost(url);
+
+        final String report = Util.getDeviceData(mContext, txt, url);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    GMailSender sender = new GMailSender("aadroidreports@gmail.com", "AAIr3l4nd");
+                    sender.sendMail("ServerChecker Error Report",
                             report,
                             "aadroidreports@gmail.com",
                             "lamenza@gmail.com, mariolamenza@gmail.com, mariolamenza@hotmail");
