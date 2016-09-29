@@ -12,6 +12,7 @@ public class Constants {
     public static final String SITE_PORT = "site_port";
     public static final String EMAIL = "email";
     public static final String LAST_CHECK = "last_check";
+    public static final String USER_TYPE = "user_type";
     public static final long T_HOURS = 60*60*1000;
     public static final long T_MINUTES = 60*1000;
     public static final long T_SECONDS = 1000;

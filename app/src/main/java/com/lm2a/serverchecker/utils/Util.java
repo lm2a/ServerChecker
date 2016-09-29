@@ -1,13 +1,17 @@
 package com.lm2a.serverchecker.utils;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Build;
+import android.preference.PreferenceManager;
 import android.telephony.TelephonyManager;
 
+import com.lm2a.serverchecker.model.Config;
 import com.lm2a.serverchecker.model.Email;
+import com.lm2a.serverchecker.services.Constants;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -142,5 +146,45 @@ public class Util {
             es.add(email);
         }
         return es;
+    }
+
+    public static void setParametersOnPreferences(Context context, int interval, int timeUnit, String url, int p, String email){
+        SharedPreferences sharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+        sharedPrefs.edit().putInt(Constants.INTERVAL, interval).apply();
+        sharedPrefs.edit().putInt(Constants.TIME_UNIT, timeUnit).apply();
+        sharedPrefs.edit().putString(Constants.SITE_URL, url).apply();
+        sharedPrefs.edit().putInt(Constants.SITE_PORT, p).apply();
+        sharedPrefs.edit().putString(Constants.EMAIL, email).apply();
+    }
+
+    public static Config getParametersFromPreferences(Context context){
+        SharedPreferences sharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+        int i = sharedPrefs.getInt(Constants.INTERVAL, 1000);//1 seg default
+        int t = sharedPrefs.getInt(Constants.TIME_UNIT, 0);//hour default
+        String u = sharedPrefs.getString(Constants.SITE_URL, null);
+        int p = sharedPrefs.getInt(Constants.SITE_PORT, 80);//default port
+        String e = sharedPrefs.getString(Constants.EMAIL, null);
+        boolean l = sharedPrefs.getBoolean(Constants.LAST_CHECK, true);
+
+        if(u!=null){
+            return new Config(i, t, u, p, e);
+        }else{
+            return null;
+        }
+    }
+
+    public static void setUserTypePro(Context context, boolean pro){
+        SharedPreferences sharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+        sharedPrefs.edit().putBoolean(Constants.USER_TYPE, pro).apply();
+    }
+
+    public static boolean getUserTypePro(Context context){
+        SharedPreferences sharedPrefs = PreferenceManager
+                .getDefaultSharedPreferences(context);
+        boolean u = sharedPrefs.getBoolean(Constants.USER_TYPE, false);
+        return u;
     }
 }

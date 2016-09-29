@@ -63,7 +63,13 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
 
     private void doPeriodicTask(Context context) {
         // Periodic task(s) go here ...
-        checkStandard();
+        boolean isPremium = Util.getUserTypePro(context);
+        if(isPremium){
+            checkPro();
+        }else{
+            checkStandard();
+        }
+
     }
 
     public void restartPeriodicTaskHeartBeat(Context context) {

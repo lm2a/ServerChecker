@@ -33,6 +33,7 @@ import com.lm2a.serverchecker.billing.util.Purchase;
 import com.lm2a.serverchecker.model.Config;
 import com.lm2a.serverchecker.services.BackgroundService;
 import com.lm2a.serverchecker.services.Constants;
+import com.lm2a.serverchecker.utils.Util;
 
 public class MainActivity extends AppCompatActivity implements IabBroadcastReceiver.IabBroadcastListener,
         View.OnClickListener {
@@ -151,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
             }
         });
         //----------------------------------------------------------------------------------------
-        Config c = getParametersFromPreferences();
+        Config c = Util.getParametersFromPreferences(this);
         setUI(c);
     }
 
@@ -181,7 +182,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
             Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
             mIsPremium = (premiumPurchase != null && verifyDeveloperPayload(premiumPurchase));
             Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
-
+            Util.setUserTypePro(MainActivity.this, mIsPremium);
 
             updateUi();
             setWaitScreen(false);
@@ -350,7 +351,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
                     timeUnit=config.timeUnit;
                 }
                 Log.i("TAG", "" + timeChoosed + " - " + timeUnit + " - " + notification + " - " + email);
-                setParametersOnPreferences(timeChoosed, timeUnit, u, p, null);
+                Util.setParametersOnPreferences(MainActivity.this, timeChoosed, timeUnit, u, p, null);
                 //process();
 
                 Intent startServiceIntent = new Intent(MainActivity.this, BackgroundService.class);
@@ -382,19 +383,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
             }
         });
 
-//        chkEmail.setOnClickListener(new View.OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//                //is chkIos checked?
-//                if (((CheckBox) v).isChecked()) {
-//                    email = true;
-//                } else {
-//                    email = false;
-//                }
-//
-//            }
-//        });
+
 
 
         mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
@@ -440,32 +429,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
     }
 
 
-    private void setParametersOnPreferences(int interval, int timeUnit, String url, int p, String email){
-        SharedPreferences sharedPrefs = PreferenceManager
-                .getDefaultSharedPreferences(this);
-        sharedPrefs.edit().putInt(Constants.INTERVAL, interval).apply();
-        sharedPrefs.edit().putInt(Constants.TIME_UNIT, timeUnit).apply();
-        sharedPrefs.edit().putString(Constants.SITE_URL, url).apply();
-        sharedPrefs.edit().putInt(Constants.SITE_PORT, p).apply();
-        sharedPrefs.edit().putString(Constants.EMAIL, email).apply();
-    }
 
-    private Config getParametersFromPreferences(){
-        SharedPreferences sharedPrefs = PreferenceManager
-                .getDefaultSharedPreferences(this);
-        int i = sharedPrefs.getInt(Constants.INTERVAL, 1000);//1 seg default
-        int t = sharedPrefs.getInt(Constants.TIME_UNIT, 0);//hour default
-        String u = sharedPrefs.getString(Constants.SITE_URL, null);
-        int p = sharedPrefs.getInt(Constants.SITE_PORT, 80);//default port
-        String e = sharedPrefs.getString(Constants.EMAIL, null);
-        boolean l = sharedPrefs.getBoolean(Constants.LAST_CHECK, true);
-
-        if(u!=null){
-            return new Config(i, t, u, p, e);
-        }else{
-            return null;
-        }
-    }
 
     private void updateUIWithLastCheck(){
         SharedPreferences sharedPrefs = PreferenceManager
