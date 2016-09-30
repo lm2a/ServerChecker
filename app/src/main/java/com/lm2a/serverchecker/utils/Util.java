@@ -148,13 +148,12 @@ public class Util {
         return es;
     }
 
-    public static void setParametersOnPreferences(Context context, int interval, int timeUnit, String url, int p, String email){
+    public static void setParametersOnPreferences(Context context, int interval, int timeUnit, String url, String email){
         SharedPreferences sharedPrefs = PreferenceManager
                 .getDefaultSharedPreferences(context);
         sharedPrefs.edit().putInt(Constants.INTERVAL, interval).apply();
         sharedPrefs.edit().putInt(Constants.TIME_UNIT, timeUnit).apply();
         sharedPrefs.edit().putString(Constants.SITE_URL, url).apply();
-        sharedPrefs.edit().putInt(Constants.SITE_PORT, p).apply();
         sharedPrefs.edit().putString(Constants.EMAIL, email).apply();
     }
 
@@ -164,12 +163,11 @@ public class Util {
         int i = sharedPrefs.getInt(Constants.INTERVAL, 1000);//1 seg default
         int t = sharedPrefs.getInt(Constants.TIME_UNIT, 0);//hour default
         String u = sharedPrefs.getString(Constants.SITE_URL, null);
-        int p = sharedPrefs.getInt(Constants.SITE_PORT, 80);//default port
         String e = sharedPrefs.getString(Constants.EMAIL, null);
         boolean l = sharedPrefs.getBoolean(Constants.LAST_CHECK, true);
 
         if(u!=null){
-            return new Config(i, t, u, p, e);
+            return new Config(i, t, u, e);
         }else{
             return null;
         }

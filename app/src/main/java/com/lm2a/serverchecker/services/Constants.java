@@ -9,7 +9,6 @@ public class Constants {
     public static final int MINUTES = 1;
     public static final String INTERVAL = "interval";
     public static final String SITE_URL = "site_url";
-    public static final String SITE_PORT = "site_port";
     public static final String EMAIL = "email";
     public static final String LAST_CHECK = "last_check";
     public static final String USER_TYPE = "user_type";

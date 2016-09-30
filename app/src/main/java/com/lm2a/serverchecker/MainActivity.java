@@ -48,20 +48,20 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
     private ImageView mLastCheck;
 
     // Does the user have the premium upgrade?
-    boolean mIsPremium = false;
+    private boolean mIsPremium = false;
     // SKUs for our products: the premium upgrade (non-consumable)
-    static final String SKU_PREMIUM = "serverchecker.sku.premium";
+    private static final String SKU_PREMIUM = "serverchecker.sku.premium";
     // (arbitrary) request code for the purchase flow
-    static final int RC_REQUEST = 10001;
+    private static final int RC_REQUEST = 10001;
     // The helper object
-    IabHelper mHelper;
+    private IabHelper mHelper;
     // Provides purchase notification while this app is running
-    IabBroadcastReceiver mBroadcastReceiver;
-    BroadcastReceiver mUpdateBroadcastReceiver;
+    private IabBroadcastReceiver mBroadcastReceiver;
+    private BroadcastReceiver mUpdateBroadcastReceiver;
 
     private int timeUnit = -1;
     private int timeChoosed=-1;
-    private boolean notification, email;
+    private boolean notification;
 
     @Override
     public void onStart() {
@@ -182,9 +182,9 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
             Purchase premiumPurchase = inventory.getPurchase(SKU_PREMIUM);
             mIsPremium = (premiumPurchase != null && verifyDeveloperPayload(premiumPurchase));
             Log.d(TAG, "User is " + (mIsPremium ? "PREMIUM" : "NOT PREMIUM"));
-            Util.setUserTypePro(MainActivity.this, mIsPremium);
 
-            updateUi();
+
+            updateUi(mIsPremium);
             setWaitScreen(false);
             Log.d(TAG, "Initial inventory query finished; enabling main UI.");
         }
@@ -221,7 +221,11 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
     }
 
     // updates UI to reflect model
-    public void updateUi() {
+    public void updateUi(boolean isPro) {
+        Util.setUserTypePro(MainActivity.this, mIsPremium);
+        Intent i = new Intent(this, MainActivityPro.class);
+        startActivity(i);
+
         // update the car color to reflect premium status or lack thereof
        //TODO ((ImageView)findViewById(R.id.free_or_premium)).setImageResource(mIsPremium ? R.drawable.premium : R.drawable.free);
 
@@ -232,8 +236,14 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
 
     // Enables or disables the "please wait" screen.
     void setWaitScreen(boolean set) {
-        //TODO findViewById(R.id.screen_main).setVisibility(set ? View.GONE : View.VISIBLE);
-        //TODO findViewById(R.id.screen_wait).setVisibility(set ? View.VISIBLE : View.GONE);
+        //TODO mostrar el orangu sonriendo
+        if(set){
+            //TODO findViewById(R.id.screen_main).setVisibility(set ? View.GONE : View.VISIBLE);
+        }else{
+            //TODO findViewById(R.id.screen_wait).setVisibility(set ? View.VISIBLE : View.GONE);
+        }
+
+
     }
 
     void alert(String message) {
@@ -289,7 +299,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
                 Log.d(TAG, "Purchase is premium upgrade. Congratulating user.");
                 alert("Thank you for upgrading to premium!");
                 mIsPremium = true;
-                updateUi();
+                updateUi(mIsPremium);
                 setWaitScreen(false);
             }
         }
@@ -305,7 +315,6 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         mNumberPicker.setMaxValue(30);
         mNumberPicker.setWrapSelectorWheel(false);
 
-
         mLastCheck = (ImageView) findViewById(R.id.lastCheck);
         updateUIWithLastCheck();
         LinearLayout linearButton = (LinearLayout)findViewById(R.id.linearButton);
@@ -315,9 +324,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
                 onUpgradeAppButtonClicked();
             }
         });
-        //final EditText editTextEmail = (EditText) findViewById(R.id.editTextEmail);
         final EditText site = (EditText) findViewById(R.id.site);
-        final EditText port = (EditText) findViewById(R.id.port);
 
         mStart = (Button) findViewById(R.id.start);
 
@@ -333,8 +340,7 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         mLastCheck.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                Intent i = new Intent(MainActivity.this, DataBaseActivity.class);
-//                startActivity(i);
+            //perhaps I can try to check when user click on the light
             }
         });
 
@@ -344,14 +350,13 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
 
                 //String e = editTextEmail.getText().toString();
                 String u = site.getText().toString();
-                int p = new Integer(port.getText().toString());
 
                 if(timeChoosed<0){
                     timeChoosed=config.interval;
                     timeUnit=config.timeUnit;
                 }
-                Log.i("TAG", "" + timeChoosed + " - " + timeUnit + " - " + notification + " - " + email);
-                Util.setParametersOnPreferences(MainActivity.this, timeChoosed, timeUnit, u, p, null);
+                Log.i("TAG", "" + timeChoosed + " - " + timeUnit + " - " + notification);
+                Util.setParametersOnPreferences(MainActivity.this, timeChoosed, timeUnit, u, null);
                 //process();
 
                 Intent startServiceIntent = new Intent(MainActivity.this, BackgroundService.class);
@@ -367,7 +372,6 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
         });
 
         CheckBox chkNotification = (CheckBox) findViewById(R.id.checkBoxNotification);
-        //CheckBox chkEmail = (CheckBox) findViewById(R.id.checkBoxEmail);
 
         chkNotification.setOnClickListener(new View.OnClickListener() {
 
@@ -382,9 +386,6 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
 
             }
         });
-
-
-
 
         mRadioGroup.setOnCheckedChangeListener(new RadioGroup.OnCheckedChangeListener() {
 
@@ -415,20 +416,8 @@ public class MainActivity extends AppCompatActivity implements IabBroadcastRecei
             }
             //editTextEmail.setText(config.email);
             site.setText(config.url);
-            StringBuffer sb = new StringBuffer();
-            sb.append(config.port);
-            String x = sb.toString();
-            port.setText(new String(x));
         }
-
     }
-
-
-    public void updateUI(boolean lastCheck){
-
-    }
-
-
 
 
     private void updateUIWithLastCheck(){
