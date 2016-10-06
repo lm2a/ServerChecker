@@ -107,14 +107,14 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                boolean isAlive = Util.isReachable(mConfig.url, mConfig.port, TIME_OUT);
+                boolean isAlive = Util.isReachable(mConfig.url, TIME_OUT);
                 Date now = new Date();
                 if (isAlive) {
                     Log.i("TAG", "lm2a Alive");
-                    sendErrorReport("Everything is bebay at "+now.toString(), mConfig.url + ":" + mConfig.port);
+                    sendErrorReport("Everything is bebay at "+now.toString(), mConfig.url);
                 } else {
 
-                    showNotification(now.toString()+":"+mConfig.url + ":" + mConfig.port + " was not responding in 1'");
+                    showNotification(now.toString()+":"+mConfig.url + " was not responding in 1'");
                 }
 
 
@@ -249,10 +249,9 @@ public class PeriodicTaskReceiver extends BroadcastReceiver {
         int i = sharedPrefs.getInt(Constants.INTERVAL, 1000);//1 seg default
         int t = sharedPrefs.getInt(Constants.TIME_UNIT, 0);//hour default
         String u = sharedPrefs.getString(Constants.SITE_URL, null);
-        int p = sharedPrefs.getInt(Constants.SITE_PORT, 80);//default port
         String e = sharedPrefs.getString(Constants.EMAIL, null);
         if (u != null) {
-            return new Config(i, t, u, p, e);
+            return new Config(i, t, u, e);
         } else {
             return null;
         }

@@ -81,18 +81,18 @@ public class Util {
     }
 
 
-    public static boolean isReachable(String addr, int openPort, int timeOutMillis) {
+    public static boolean isReachable(String addr, int timeOutMillis) {
         // Any Open port on other machine
         // openPort =  22 - ssh, 80 or 443 - webserver, 25 - mailserver etc.
         boolean b = false;
         try {
-            //try (
-                    Socket soc = new Socket();
-            //) {
-                //InetAddress addr = new InetSocketAddress(addr, openPort)
-                soc.connect(new InetSocketAddress(addr, openPort), timeOutMillis);
+            Socket soc = new Socket();
+            URL  site = new URL(addr);
+            soc.connect(new InetSocketAddress(addr, site.getPort()), timeOutMillis);
             //}
             b = true;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
         } catch (IOException ex) {
             b = false;
         }
